@@ -4,9 +4,9 @@ import Carousel from '../components/Carousel';
 import ProductCard from '../components/ProductCard';
 
 const CYBER_PRODUCTS = [
-  { image: '/assets/vr.webp', alt: 'VR', name: 'Pase VR', price: '$5.00/hr', description: 'Acceso por 1 hora a nuestras VR.', highlighted: false },
-  { image: '/assets/ps4.webp', alt: 'Pase PlayStation', name: 'Pase PlayStation', price: '$5.00/hr', description: 'Acceso por 1 hora a nuestras PlayStation.', highlighted: false },
-  { image: '/assets/PC.webp', alt: 'Pase PC Gamer', name: 'Pase PC Gamer', price: '$5.00/hr', description: 'Acceso por 1 hora a nuestras PC Gamer.', highlighted: true },
+  { image: '/pixelyplush/assets/vr.webp', alt: 'VR', name: 'Pase VR', price: '$5.00/hr', description: 'Acceso por 1 hora a nuestras VR.', highlighted: false },
+  { image: '/pixelyplush/assets/ps4.webp', alt: 'Pase PlayStation', name: 'Pase PlayStation', price: '$5.00/hr', description: 'Acceso por 1 hora a nuestras PlayStation.', highlighted: false },
+  { image: '/pixelyplush/assets/PC.webp', alt: 'Pase PC Gamer', name: 'Pase PC Gamer', price: '$5.00/hr', description: 'Acceso por 1 hora a nuestras PC Gamer.', highlighted: true },
 ];
 
 function HomePage() {
@@ -38,7 +38,7 @@ function HomePage() {
           <div className="about-box about-box--split">
             <div className="about-box__video">
               <video autoPlay muted loop playsInline>
-                <source src="/assets/pikavid.mp4" type="video/mp4" />
+                <source src="/pixelyplush/assets/pikavid.mp4" type="video/mp4" />
               </video>
             </div>
             <div className="about-box__content">

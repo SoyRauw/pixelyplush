@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 
 const PLUSHIES = [
-  { image: '/assets/pikachu.webp', alt: 'Pikachu Peluche', name: 'Pikachu 25cm', price: '$15.00' },
-  { image: '/assets/gengar.webp', alt: 'Gengar Peluche', name: 'Gengar 25cm', price: '$15.00' },
-  { image: '/assets/bulbasur.webp', alt: 'Bulbasaur Peluche', name: 'Bulbasaur 25cm', price: '$15.00' },
-  { image: '/assets/psyduck.webp', alt: 'Psyduck Peluche', name: 'Psyduck 25cm', price: '$15.00' },
-  { image: '/assets/charmander.webp', alt: 'Charmander Peluche', name: 'Charmander 25cm', price: '$15.00' },
-  { image: '/assets/squirtle.webp', alt: 'Squirtle Peluche', name: 'Squirtle 25cm', price: '$15.00' },
+  { image: '/pixelyplush/assets/pikachu.webp', alt: 'Pikachu Peluche', name: 'Pikachu 25cm', price: '$15.00' },
+  { image: '/pixelyplush/assets/gengar.webp', alt: 'Gengar Peluche', name: 'Gengar 25cm', price: '$15.00' },
+  { image: '/pixelyplush/assets/bulbasur.webp', alt: 'Bulbasaur Peluche', name: 'Bulbasaur 25cm', price: '$15.00' },
+  { image: '/pixelyplush/assets/psyduck.webp', alt: 'Psyduck Peluche', name: 'Psyduck 25cm', price: '$15.00' },
+  { image: '/pixelyplush/assets/charmander.webp', alt: 'Charmander Peluche', name: 'Charmander 25cm', price: '$15.00' },
+  { image: '/pixelyplush/assets/squirtle.webp', alt: 'Squirtle Peluche', name: 'Squirtle 25cm', price: '$15.00' },
 ];
 
 function Carousel() {

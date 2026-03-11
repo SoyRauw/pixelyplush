@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useCart } from '../context/CartContext';
 
 const PLUSHIES = [
   { image: '/pixelyplush/assets/pikachu.webp', alt: 'Pikachu Peluche', name: 'Pikachu 25cm', price: '$15.00' },
@@ -12,6 +13,7 @@ const PLUSHIES = [
 function Carousel() {
   const [carouselIndex, setCarouselIndex] = useState(0);
   const cardRefs = useRef([]);
+  const { addToCart } = useCart();
   const total = PLUSHIES.length;
 
   useEffect(() => {
@@ -63,7 +65,7 @@ function Carousel() {
               <img src={item.image} alt={item.alt} className="product-image" />
               <h3>{item.name}</h3>
               <div className="price">{item.price}</div>
-              <button className="btn">¡YO TE ELIGO!</button>
+              <button className="btn" onClick={() => addToCart(item)}>¡YO TE ELIJO!</button>
             </div>
           </div>
         ))}

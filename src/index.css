@@ -486,6 +486,27 @@ footer {
     .carousel-card {
         min-width: 100%;
     }
+
+    .section-container {
+        padding: 40px 5%;
+    }
+
+    .lb-table th, .lb-table td {
+        padding: 10px 5px;
+        font-size: 0.85rem;
+    }
+
+    .lb-pilot {
+        font-size: 0.9rem;
+    }
+
+    .lb-time {
+        font-size: 0.9rem;
+    }
+
+    .lb-date {
+        font-size: 0.75rem;
+    }
 }
 
 /* --- LEADERBOARD & ADMIN --- */
@@ -525,8 +546,8 @@ footer {
 
 .lb-pos { font-weight: bold; width: 60px; text-align: center; }
 .lb-pilot { font-weight: bold; font-size: 1.1rem; }
-.lb-time { color: var(--accent-glow); font-family: monospace; font-size: 1.2rem; }
-.lb-date { color: #aaa; font-size: 0.9rem; }
+.lb-time { color: var(--accent-glow); font-family: monospace; font-size: 1.2rem; white-space: nowrap; }
+.lb-date { color: #aaa; font-size: 0.9rem; white-space: nowrap; }
 
 .lb-top-1 td { background-color: rgba(255, 215, 0, 0.1); }
 .lb-top-2 td { background-color: rgba(192, 192, 192, 0.1); }

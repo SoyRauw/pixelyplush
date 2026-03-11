@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
 
 function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { cartCount, toggleSidebar } = useCart();
 
   return (
     <header>
@@ -52,6 +54,12 @@ function Header() {
             <NavLink to="/admin" className={({ isActive }) => isActive ? 'active admin-link' : 'admin-link'} onClick={() => setMenuOpen(false)}>
               🔐 Admin
             </NavLink>
+          </li>
+          <li>
+            <button className="cart-icon-btn" onClick={toggleSidebar}>
+              🛒
+              {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
+            </button>
           </li>
         </ul>
       </nav>

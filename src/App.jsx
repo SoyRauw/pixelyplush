@@ -8,12 +8,14 @@ import CyberPage from './pages/CyberPage';
 import ContactoPage from './pages/ContactoPage';
 import LeaderboardPage from './pages/LeaderboardPage';
 import AdminPage from './pages/AdminPage';
+import CartSidebar from './components/CartSidebar';
 
 function App() {
   return (
     <HashRouter>
       <div className="app-layout">
         <Header />
+        <CartSidebar />
         <div className="page-content">
           <Routes>
             <Route path="/" element={<HomePage />} />

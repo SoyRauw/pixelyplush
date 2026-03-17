@@ -1,22 +1,30 @@
 import { useState, useEffect, useRef } from 'react';
 import { useCart } from '../context/CartContext';
-
-const PLUSHIES = [
-  { image: '/pixelyplush/assets/pikachu.webp', alt: 'Pikachu Peluche', name: 'Pikachu 25cm', price: '$15.00' },
-  { image: '/pixelyplush/assets/gengar.webp', alt: 'Gengar Peluche', name: 'Gengar 25cm', price: '$15.00' },
-  { image: '/pixelyplush/assets/bulbasur.webp', alt: 'Bulbasaur Peluche', name: 'Bulbasaur 25cm', price: '$15.00' },
-  { image: '/pixelyplush/assets/psyduck.webp', alt: 'Psyduck Peluche', name: 'Psyduck 25cm', price: '$15.00' },
-  { image: '/pixelyplush/assets/charmander.webp', alt: 'Charmander Peluche', name: 'Charmander 25cm', price: '$15.00' },
-  { image: '/pixelyplush/assets/squirtle.webp', alt: 'Squirtle Peluche', name: 'Squirtle 25cm', price: '$15.00' },
-];
+import { supabase } from '../lib/supabase';
 
 function Carousel() {
   const [carouselIndex, setCarouselIndex] = useState(0);
+  const [plushies, setPlushies] = useState([]);
   const cardRefs = useRef([]);
   const { addToCart } = useCart();
-  const total = PLUSHIES.length;
 
   useEffect(() => {
+    const fetchPlushies = async () => {
+      const { data, error } = await supabase
+        .from('plushies')
+        .select('*')
+        .order('name', { ascending: true });
+      if (!error && data) {
+        setPlushies(data);
+      }
+    };
+    fetchPlushies();
+  }, []);
+
+  const total = plushies.length;
+
+  useEffect(() => {
+    if (total === 0) return;
     cardRefs.current.forEach((card, idx) => {
       if (!card) return;
 
@@ -55,17 +63,26 @@ function Carousel() {
     <div className="carousel-wrapper">
       <button className="carousel-btn prev" onClick={() => moveCarousel(-1)}>❮</button>
       <div className="carousel-track" id="track">
-        {PLUSHIES.map((item, idx) => (
+        {plushies.map((item, idx) => (
           <div
             key={idx}
             className="carousel-card"
             ref={(el) => (cardRefs.current[idx] = el)}
           >
             <div className="card">
-              <img src={item.image} alt={item.alt} className="product-image" />
+              <img src={item.image} alt={item.name} className="product-image" />
               <h3>{item.name}</h3>
-              <div className="price">{item.price}</div>
-              <button className="btn" onClick={() => addToCart(item)}>¡YO TE ELIJO!</button>
+              <div className="price">{item.price_text}</div>
+              <div style={{ fontSize: '0.85rem', color: '#888', marginBottom: '15px' }}>
+                Quedan {item.stock} en stock
+              </div>
+              <button 
+                className="btn" 
+                onClick={() => addToCart(item)}
+                disabled={item.stock === 0}
+              >
+                {item.stock === 0 ? 'Agotado' : '¡YO TE ELIJO!'}
+              </button>
             </div>
           </div>
         ))}

@@ -1,15 +1,23 @@
+import { useState, useEffect } from 'react';
 import ProductCard from '../components/ProductCard';
-
-const PLUSHIES = [
-  { image: '/pixelyplush/assets/pikachu.webp', alt: 'Pikachu Peluche', name: 'Pikachu 25cm', price: '$15.00' },
-  { image: '/pixelyplush/assets/gengar.webp', alt: 'Gengar Peluche', name: 'Gengar 25cm', price: '$15.00' },
-  { image: '/pixelyplush/assets/bulbasur.webp', alt: 'Bulbasaur Peluche', name: 'Bulbasaur 25cm', price: '$15.00' },
-  { image: '/pixelyplush/assets/psyduck.webp', alt: 'Psyduck Peluche', name: 'Psyduck 25cm', price: '$15.00' },
-  { image: '/pixelyplush/assets/charmander.webp', alt: 'Charmander Peluche', name: 'Charmander 25cm', price: '$15.00' },
-  { image: '/pixelyplush/assets/squirtle.webp', alt: 'Squirtle Peluche', name: 'Squirtle 25cm', price: '$15.00' },
-];
+import { supabase } from '../lib/supabase';
 
 function TiendaPage() {
+  const [plushies, setPlushies] = useState([]);
+
+  useEffect(() => {
+    const fetchPlushies = async () => {
+      const { data, error } = await supabase
+        .from('plushies')
+        .select('*')
+        .order('name', { ascending: true });
+      if (!error && data) {
+        setPlushies(data);
+      }
+    };
+    fetchPlushies();
+  }, []);
+
   return (
     <main style={{ paddingTop: '80px' }}>
       <section className="section-container">
@@ -18,14 +26,16 @@ function TiendaPage() {
           Encuentra a tu compañero de aventuras perfecto.
         </p>
         <div className="product-grid">
-          {PLUSHIES.map((plush, idx) => (
+          {plushies.map((plush, idx) => (
             <ProductCard
               key={idx}
               image={plush.image}
-              alt={plush.alt}
+              alt={plush.name}
               name={plush.name}
-              price={plush.price}
-              buttonText="¡YO TE ELIGO!"
+              price={plush.price_text}
+              stock={plush.stock}
+              buttonText="¡YO TE ELIJO!"
+              item={plush}
             />
           ))}
         </div>

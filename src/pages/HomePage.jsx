@@ -4,9 +4,9 @@ import Carousel from '../components/Carousel';
 import ProductCard from '../components/ProductCard';
 
 const CYBER_PRODUCTS = [
-  { image: '/pixelyplush/assets/vr.webp', alt: 'VR', name: 'Pase VR', price: '$5.00/hr', description: 'Acceso por 1 hora a nuestras VR.', highlighted: false },
-  { image: '/pixelyplush/assets/ps4.webp', alt: 'Pase PlayStation', name: 'Pase PlayStation', price: '$5.00/hr', description: 'Acceso por 1 hora a nuestras PlayStation.', highlighted: false },
-  { image: '/pixelyplush/assets/PC.webp', alt: 'Pase PC Gamer', name: 'Pase PC Gamer', price: '$5.00/hr', description: 'Acceso por 1 hora a nuestras PC Gamer.', highlighted: true },
+  { image: '/pixelyplush/assets/vr.webp', alt: 'VR', name: 'Pase VR', price: '$1/15min', description: 'Acceso por 15 minutos a nuestras VR.' },
+  { image: '/pixelyplush/assets/ps4.webp', alt: 'Pase PlayStation', name: 'Pase PlayStation', price: '$1/15min', description: 'Acceso por 15 minutos a nuestras PlayStation.' },
+  { image: '/pixelyplush/assets/simulador.webp', alt: 'Pase Simulador De Carreras', name: 'Pase Simulador De Carreras', price: '$1/Vuelta', description: 'Acceso a una carrera en el simulador.', highlighted: true },
 ];
 
 function HomePage() {
@@ -56,7 +56,7 @@ function HomePage() {
 
         {/* Carrusel */}
         <section className="section-container" id="carrusel-peluches">
-          <h2 className="section-title">Nuestros Peluches Estrella</h2>
+          <h2 className="section-title">Nuestros Peluches</h2>
           <Carousel />
           <br /><br />
           <Link to="/tienda" className="btn btn-outline">Ver Catálogo Completo</Link>
@@ -125,14 +125,17 @@ function HomePage() {
           </form>
         </div>
         <br /><br />
-        <a
-          href="https://wa.me/584120445559?text=Hola%20Pixel%20%26%20Plush!%20Quiero%20Este%20Pokemon..."
-          target="_blank"
-          rel="noreferrer"
-          className="btn btn-whatsapp"
-        >
-          💬 Escríbenos por WhatsApp
-        </a>
+        <div style={{ textAlign: 'center' }}>
+          <a
+            href="https://wa.me/584120445559?text=Hola%20Pixel%20%26%20Plush!%20Quiero%20Este%20Pokemon..."
+            target="_blank"
+            rel="noreferrer"
+            className="btn btn-whatsapp"
+            style={{ display: 'inline-block', width: 'fit-content', padding: '15px 40px' }}
+          >
+            💬 Escríbenos por WhatsApp
+          </a>
+        </div>
       </section>
     </main>
   );

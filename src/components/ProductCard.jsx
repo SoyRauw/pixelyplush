@@ -1,7 +1,7 @@
 import React from 'react';
 import { useCart } from '../context/CartContext';
 
-function ProductCard({ image, alt, name, price, buttonText = "Comprar", description, highlighted = false, isCyber = false }) {
+function ProductCard({ image, alt, name, price, stock, buttonText = "Comprar", description, highlighted = false, isCyber = false, item = null }) {
   const { addToCart } = useCart();
 
   return (
@@ -14,13 +14,18 @@ function ProductCard({ image, alt, name, price, buttonText = "Comprar", descript
       {description && (
         <p style={{ margin: '15px 0', color: '#aaa' }}>{description}</p>
       )}
-      {description && <p>{description}</p>}
       <div className="price">{price}</div>
+      {stock !== undefined && (
+        <div style={{ fontSize: '0.85rem', color: '#888', marginBottom: '15px' }}>
+          Quedan {stock} en stock
+        </div>
+      )}
       <button 
         className="btn"
-        onClick={() => addToCart({ name, price, image })}
+        onClick={() => addToCart(item || { name, price, image })}
+        disabled={stock === 0}
       >
-        {buttonText}
+        {stock === 0 ? 'Agotado' : buttonText}
       </button>
     </div>
   );

@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { useCart } from '../context/CartContext';
+import { supabase } from '../lib/supabase';
 
 function CartSidebar() {
   const {
@@ -9,21 +11,28 @@ function CartSidebar() {
     decreaseQuantity,
     removeFromCart,
     cartTotal,
+    clearCart
   } = useCart();
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
+    setIsProcessing(true);
+    
     const phoneNumber = '584120445559'; // Número proporcionado por el usuario
     
     let message = '¡Hola! 👾 Me gustaría hacer un pedido en Pixel & Plush:\n\n';
     
     cartItems.forEach((item) => {
-      message += `▪️ ${item.quantity}x ${item.name} (${item.price})\n`;
+      // Usamos item.price_text si viene de supabase, o item.price si es fallback
+      const priceStr = item.price_text || item.price || '$0.00';
+      message += `▪️ ${item.quantity}x ${item.name} (${priceStr})\n`;
     });
     
     message += `\n*Total a Pagar: $${cartTotal.toFixed(2)}*\n\n¿Podrían confirmarme la disponibilidad?`;
 
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, '_blank');
+    setIsProcessing(false);
   };
 
   if (!isSidebarOpen) return null;
@@ -49,7 +58,7 @@ function CartSidebar() {
                 <img src={item.image} alt={item.name} className="cart-item-img" />
                 <div className="cart-item-details">
                   <h4>{item.name}</h4>
-                  <p className="cart-item-price">{item.price}</p>
+                  <p className="cart-item-price">{item.price_text || item.price}</p>
                   
                   <div className="cart-item-actions">
                     <button onClick={() => decreaseQuantity(item.name)}>-</button>
@@ -73,9 +82,9 @@ function CartSidebar() {
           <button 
             className="btn btn-whatsapp" 
             onClick={handleCheckout}
-            disabled={cartItems.length === 0}
+            disabled={cartItems.length === 0 || isProcessing}
           >
-            Comprar vía WhatsApp 📱
+            {isProcessing ? 'Procesando...' : 'Comprar vía WhatsApp 📱'}
           </button>
         </div>
       </div>

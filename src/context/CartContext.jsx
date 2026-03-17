@@ -55,11 +55,18 @@ export const CartProvider = ({ children }) => {
 
   const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
 
-  // Calcula el total interpretando el string "$15.00" o "$5.00/hr"
+  // Calcula el total interpretando el string "$15.00", "$5.00/hr" o usando item.price número directo
   const cartTotal = cartItems.reduce((total, item) => {
-    // Remover símbolos y letras (como "$", "/hr")
-    const numericPrice = parseFloat(item.price.replace(/[^0-9.]/g, ''));
-    return total + (numericPrice * item.quantity);
+    let numericPrice = 0;
+    if (typeof item.price === 'number') {
+        numericPrice = item.price;
+    } else if (typeof item.price === 'string') {
+        // Remover símbolos y letras (como "$", "/hr")
+        numericPrice = parseFloat(item.price.replace(/[^0-9.]/g, ''));
+    } else if (typeof item.price_text === 'string') {
+        numericPrice = parseFloat(item.price_text.replace(/[^0-9.]/g, ''));
+    }
+    return total + ((isNaN(numericPrice) ? 0 : numericPrice) * item.quantity);
   }, 0);
 
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);

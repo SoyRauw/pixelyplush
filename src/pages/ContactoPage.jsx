@@ -29,14 +29,17 @@ function ContactoPage() {
           </form>
         </div>
         <br /><br />
-        <a
-          href="https://wa.me/584120445559?text=Hola%20Pixel%20%26%20Plush!%20Quiero%20Este%20Pokemon..."
-          target="_blank"
-          rel="noreferrer"
-          className="btn btn-whatsapp"
-        >
-          💬 Escríbenos por WhatsApp
-        </a>
+        <div style={{ textAlign: 'center' }}>
+          <a
+            href="https://wa.me/584120445559?text=Hola%20Pixel%20%26%20Plush!%20Quiero%20Este%20Pokemon..."
+            target="_blank"
+            rel="noreferrer"
+            className="btn btn-whatsapp"
+            style={{ display: 'inline-block', width: 'fit-content', padding: '15px 40px' }}
+          >
+            💬 Escríbenos por WhatsApp
+          </a>
+        </div>
         <br /><br />
 
         <h3 className="section-title">¡Encuéntranos en URBE!</h3>

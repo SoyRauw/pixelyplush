@@ -20,6 +20,10 @@ function AdminPage() {
   const [selectedPlushieId, setSelectedPlushieId] = useState('');
   const invoiceTotal = invoiceItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
+  // Leaderboard states
+  const [records, setRecords] = useState([]);
+  const [recordForm, setRecordForm] = useState({ name: '', min: '0', sec: '0', ms: '0' });
+
   const navigate = useNavigate();
 
   // Mantener sesión admin durante la visita
@@ -30,11 +34,9 @@ function AdminPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      if (activeTab === 'plushies') {
-        fetchPlushies();
-      } else {
-        fetchPurchases();
-      }
+      if (activeTab === 'plushies') fetchPlushies();
+      else if (activeTab === 'purchases') fetchPurchases();
+      else if (activeTab === 'leaderboard') fetchLeaderboard();
     }
   }, [isAuthenticated, activeTab]);
 
@@ -52,6 +54,14 @@ function AdminPage() {
       .select('*')
       .order('created_at', { ascending: false });
     setPurchases(data || []);
+  };
+
+  const fetchLeaderboard = async () => {
+    const { data } = await supabase
+      .from('leaderboard')
+      .select('*')
+      .order('tiempo', { ascending: true });
+    setRecords(data || []);
   };
 
   const handleLogin = async (e) => {
@@ -184,6 +194,45 @@ function AdminPage() {
     setLoading(false);
   };
 
+  const handleAddRecord = async (e) => {
+    e.preventDefault();
+    setFormError('');
+    setFormSuccess('');
+
+    const { name, min, sec, ms } = recordForm;
+    const m = parseInt(min) || 0;
+    const s = parseInt(sec) || 0;
+    const mili = parseInt(ms) || 0;
+    
+    if (!name || (m === 0 && s === 0 && mili === 0)) {
+      setFormError('Ingresa un piloto y un tiempo válido.');
+      return;
+    }
+
+    const totalMs = (m * 60000) + (s * 1000) + mili;
+    setLoading(true);
+
+    const { error } = await supabase
+      .from('leaderboard')
+      .insert([{ name, tiempo: totalMs }]);
+
+    setLoading(false);
+
+    if (error) {
+      setFormError('Error al guardar: ' + error.message);
+    } else {
+      setFormSuccess('¡Tiempo registrado exitosamente!');
+      setRecordForm({ name: '', min: '0', sec: '0', ms: '0' });
+      fetchLeaderboard();
+    }
+  };
+
+  const handleDeleteRecord = async (id, name) => {
+    if (!confirm(`¿Eliminar el récord de ${name}?`)) return;
+    await supabase.from('leaderboard').delete().eq('id', id);
+    fetchLeaderboard();
+  };
+
   // --- PANTALLA DE LOGIN ---
   if (!isAuthenticated) {
     return (
@@ -243,6 +292,12 @@ function AdminPage() {
             onClick={() => setActiveTab('purchases')}
           >
             💰 Compras Recientes
+          </button>
+          <button 
+            className={`btn ${activeTab === 'leaderboard' ? '' : 'btn-outline'}`}
+            onClick={() => setActiveTab('leaderboard')}
+          >
+            🏁 Simulador Racing
           </button>
         </div>
 
@@ -509,6 +564,108 @@ function AdminPage() {
                             </td>
                           </tr>
                         );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {activeTab === 'leaderboard' && (
+          <>
+            <div className="admin-card">
+              <h3 style={{ color: 'var(--soft-lila)', marginBottom: '20px', fontSize: '1.4rem' }}>
+                ➕ Agregar Nuevo Récord
+              </h3>
+              <form onSubmit={handleAddRecord} className="admin-form">
+                <div className="admin-form-group">
+                  <label>Nombre del Piloto / Steam</label>
+                  <input
+                    type="text"
+                    placeholder="Ej: SpeedDemon_99"
+                    value={recordForm.name}
+                    onChange={(e) => setRecordForm({ ...recordForm, name: e.target.value })}
+                    className="admin-input"
+                  />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)', gap: '15px' }}>
+                  <div className="admin-form-group">
+                    <label>Minutos</label>
+                    <input
+                      type="number" min="0" max="60"
+                      value={recordForm.min}
+                      onChange={(e) => setRecordForm({ ...recordForm, min: e.target.value })}
+                      className="admin-input"
+                    />
+                  </div>
+                  <div className="admin-form-group">
+                    <label>Segundos</label>
+                    <input
+                      type="number" min="0" max="59"
+                      value={recordForm.sec}
+                      onChange={(e) => setRecordForm({ ...recordForm, sec: e.target.value })}
+                      className="admin-input"
+                    />
+                  </div>
+                  <div className="admin-form-group">
+                    <label>Milisegundos</label>
+                    <input
+                      type="number" min="0" max="999"
+                      value={recordForm.ms}
+                      onChange={(e) => setRecordForm({ ...recordForm, ms: e.target.value })}
+                      className="admin-input"
+                    />
+                  </div>
+                </div>
+                {formError && <p className="admin-error">{formError}</p>}
+                {formSuccess && <p className="admin-success">{formSuccess}</p>}
+                <button type="submit" className="btn" disabled={loading} style={{ marginTop: '15px' }}>
+                  {loading ? 'Guardando...' : 'Guardar Récord'}
+                </button>
+              </form>
+            </div>
+
+            <div className="admin-card" style={{ marginTop: '30px' }}>
+              <h3 style={{ color: 'var(--soft-lila)', marginBottom: '20px', fontSize: '1.4rem' }}>
+                📋 Tiempos Registrados ({records.length})
+              </h3>
+              {records.length === 0 ? (
+                <p style={{ color: '#aaa' }}>No hay registros de tabla de clasificación todavía.</p>
+              ) : (
+                <div className="lb-table-wrapper">
+                  <table className="lb-table" style={{ width: '100%', fontSize: '0.9rem' }}>
+                    <thead>
+                      <tr>
+                        <th>Posición</th>
+                        <th>Piloto</th>
+                        <th>Tiempo (mins:secs.ms)</th>
+                        <th>Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {records.map((rec, idx) => {
+                         const totalSec = Math.floor(rec.tiempo / 1000);
+                         const min = Math.floor(totalSec / 60);
+                         const sec = totalSec % 60;
+                         const ms = rec.tiempo % 1000;
+                         const timeStr = `${min}:${String(sec).padStart(2, '0')}.${String(ms).padStart(3, '0')}`;
+                         return (
+                           <tr key={rec.id}>
+                             <td className="lb-pos" style={{ fontWeight: 'bold' }}>{idx + 1}</td>
+                             <td className="lb-pilot">{rec.name}</td>
+                             <td className="lb-time" style={{ color: 'var(--accent-glow)' }}>{timeStr}</td>
+                             <td>
+                               <button
+                                 className="admin-delete-btn"
+                                 onClick={() => handleDeleteRecord(rec.id, rec.name)}
+                               >
+                                 ❌
+                               </button>
+                             </td>
+                           </tr>
+                         );
                       })}
                     </tbody>
                   </table>

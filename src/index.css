@@ -191,6 +191,40 @@ footer {
     border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.footer-socials {
+    display: flex;
+    gap: 16px;
+}
+
+.footer-social-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--soft-lila);
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 6px 14px;
+    border-radius: 50px;
+    border: 1px solid rgba(213, 189, 236, 0.25);
+    background: rgba(213, 189, 236, 0.08);
+    transition: all 0.3s ease;
+}
+
+.footer-social-link:hover {
+    background: rgba(213, 189, 236, 0.2);
+    border-color: var(--soft-lila);
+    box-shadow: 0 0 15px rgba(213, 189, 236, 0.3);
+    transform: translateY(-2px);
+    color: #fff;
+}
+
 /* --- CLASES COMPARTIDAS --- */
 .section-container {
     padding: 60px 10%;
@@ -751,3 +785,120 @@ footer {
 }
 .btn-whatsapp:hover { background: #128C7E; box-shadow: 0 0 15px rgba(37,211,102,0.5); }
 .btn-whatsapp:disabled { background: #555; cursor: not-allowed; box-shadow: none; }
+
+/* =========================================
+   ESTILOS Y ANIMACIONES - NOSOTROS PAGE
+   ========================================= */
+
+/* Animación Fade In Up */
+.fade-in-up {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeInUpAnim 0.8s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+/* Tiempos de retardo (delays) para el efecto cascada */
+.delay-1 { animation-delay: 0.2s; }
+.delay-2 { animation-delay: 0.4s; }
+.delay-3 { animation-delay: 0.6s; }
+
+@keyframes fadeInUpAnim {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.subtitle {
+    font-size: 1.3rem;
+    color: var(--text-light);
+    margin-bottom: 20px;
+    opacity: 0.9;
+    text-shadow: 0 0 10px rgba(213, 189, 236, 0.3);
+}
+
+/* Grillas Flexibles para Misión y Visión */
+.mission-vision-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.mission-box, .vision-box, .team-box {
+    text-align: left;
+    padding: 40px;
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.4s ease;
+    background: rgba(25, 15, 43, 0.7); /* Oscurecemos un poco para contraste */
+    backdrop-filter: blur(15px);
+}
+
+.mission-box:hover, .vision-box:hover, .team-box:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 40px rgba(187, 134, 252, 0.3);
+    border-color: var(--soft-lila);
+}
+
+.mission-box h2, .vision-box h2, .team-box h2 {
+    color: var(--soft-lila);
+    margin-bottom: 20px;
+    font-size: 2.2rem;
+    text-shadow: 0 0 8px rgba(213, 189, 236, 0.4);
+}
+
+.mission-box p, .vision-box p, .team-box p {
+    font-size: 1.15rem;
+    line-height: 1.6;
+}
+
+/* Tarjetas de Valores Empresariales */
+.values-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.value-card {
+    padding: 35px 25px;
+    background: rgba(36, 22, 61, 0.6);
+    backdrop-filter: blur(8px);
+    border-top: 3px solid var(--mid-purple); /* Detalle de color en la parte superior */
+}
+
+.value-card:hover {
+    border-top-color: var(--soft-lila);
+}
+
+.value-icon {
+    font-size: 3.5rem;
+    margin-bottom: 20px;
+    filter: drop-shadow(0 0 10px rgba(187, 134, 252, 0.5));
+}
+
+.value-card h3 {
+    color: var(--accent-glow);
+    margin-bottom: 15px;
+    font-size: 1.4rem;
+}
+
+.value-card p {
+    font-size: 1.05rem;
+    color: #e0d4f5;
+}
+
+/* Caja del Equipo */
+.team-box {
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto;
+    border-radius: 40px; /* Bordes más redondeados y amigables */
+}
+
+.team-box p {
+    font-size: 1.25rem;
+}

@@ -42,7 +42,7 @@ function HomePage() {
               </video>
             </div>
             <div className="about-box__content">
-              <h2 className="section-title">Nuestra Propuesta de Valor</h2>
+              <h2 className="section-title">¿Quienes Somos?</h2>
               <p>
                 Somos el primer espacio 100% online diseñado para el gamer que no quiere elegir entre
                 suavidad y rendimiento. Te ofrecemos peluches Pokémon premium y acceso exclusivo a servicios
@@ -50,6 +50,31 @@ function HomePage() {
               </p>
               <br />
               <Link to="/nosotros" className="btn btn-outline">Leer más sobre nosotros</Link>
+              <br />
+              <a
+                href="https://www.instagram.com/pixelxplush/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="footer-social-link"
+                aria-label="Instagram"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                </svg>
+                <span>@pixelxplush</span>
+              </a>
             </div>
           </div>
         </section>

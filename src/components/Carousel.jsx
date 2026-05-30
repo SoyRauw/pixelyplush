@@ -13,6 +13,7 @@ function Carousel() {
       const { data, error } = await supabase
         .from('plushies')
         .select('*')
+        .gt('stock', 0)
         .order('name', { ascending: true });
       if (!error && data) {
         setPlushies(data);

@@ -63,8 +63,17 @@ function CartSidebar() {
                   <div className="cart-item-actions">
                     <button onClick={() => decreaseQuantity(item.name)}>-</button>
                     <span>{item.quantity}</span>
-                    <button onClick={() => addToCart(item)}>+</button>
+                    <button
+                      onClick={() => addToCart(item)}
+                      disabled={item.quantity >= item.stock}
+                      title={item.quantity >= item.stock ? 'Stock máximo alcanzado' : ''}
+                    >+</button>
                   </div>
+                  {item.quantity >= item.stock && (
+                    <p style={{ fontSize: '0.75rem', color: '#f87171', marginTop: '4px' }}>
+                      Máximo disponible: {item.stock}
+                    </p>
+                  )}
                 </div>
                 <button className="cart-item-remove" onClick={() => removeFromCart(item.name)}>
                   🗑️

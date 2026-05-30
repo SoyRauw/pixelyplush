@@ -21,6 +21,8 @@ export const CartProvider = ({ children }) => {
     setCartItems((prev) => {
       const existing = prev.find((item) => item.name === product.name);
       if (existing) {
+        // No agregar más si ya se alcanzó el stock disponible
+        if (existing.quantity >= product.stock) return prev;
         return prev.map((item) =>
           item.name === product.name
             ? { ...item, quantity: item.quantity + 1 }

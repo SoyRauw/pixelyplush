@@ -4,7 +4,6 @@ import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
 import NosotrosPage from './pages/NosotrosPage';
 import TiendaPage from './pages/TiendaPage';
-import CyberPage from './pages/CyberPage';
 import ContactoPage from './pages/ContactoPage';
 import LeaderboardPage from './pages/LeaderboardPage';
 import AdminPage from './pages/AdminPage';
@@ -21,7 +20,6 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/nosotros" element={<NosotrosPage />} />
             <Route path="/tienda" element={<TiendaPage />} />
-            <Route path="/cyber" element={<CyberPage />} />
             <Route path="/contacto" element={<ContactoPage />} />
             <Route path="/leaderboard" element={<LeaderboardPage />} />
             <Route path="/admin" element={<AdminPage />} />

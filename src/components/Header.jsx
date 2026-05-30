@@ -1,10 +1,23 @@
-import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 
 function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { cartCount, toggleSidebar } = useCart();
+  const navigate = useNavigate();
+
+  // Atajo secreto Ctrl+Shift+A para abrir el panel de admin
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+        navigate('/admin');
+        setMenuOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [navigate]);
 
   return (
     <header>
@@ -27,7 +40,7 @@ function Header() {
           </li>
           <li>
             <NavLink to="/nosotros" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>
-              Qué Hacemos
+              Envíos
             </NavLink>
           </li>
           <li>
@@ -36,23 +49,8 @@ function Header() {
             </NavLink>
           </li>
           <li>
-            <NavLink to="/cyber" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>
-              CyberZone
-            </NavLink>
-          </li>
-          <li>
             <NavLink to="/contacto" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>
               Contacto
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/leaderboard" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>
-              🏁 Leaderboard
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/admin" className={({ isActive }) => isActive ? 'active admin-link' : 'admin-link'} onClick={() => setMenuOpen(false)}>
-              🔐 Admin
             </NavLink>
           </li>
           <li>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
 
@@ -7,6 +8,7 @@ function Carousel() {
   const [plushies, setPlushies] = useState([]);
   const cardRefs = useRef([]);
   const { addToCart } = useCart();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPlushies = async () => {
@@ -60,6 +62,15 @@ function Carousel() {
     setCarouselIndex((prev) => (prev + direction + total) % total);
   };
 
+  const handleCardClick = (item) => {
+    navigate('/tienda', { state: { selectedPlushieId: item.id } });
+  };
+
+  const handleButtonClick = (e, item) => {
+    e.stopPropagation();
+    addToCart(item);
+  };
+
   return (
     <div className="carousel-wrapper">
       <button className="carousel-btn prev" onClick={() => moveCarousel(-1)}>❮</button>
@@ -70,16 +81,16 @@ function Carousel() {
             className="carousel-card"
             ref={(el) => (cardRefs.current[idx] = el)}
           >
-            <div className="card">
-              <img src={item.image} alt={item.name} className="product-image" />
+            <div className="card" onClick={() => handleCardClick(item)}>
+              <img src={item.image?.replace('/pixelyplush/assets/', '/assets/') || item.image} alt={item.name} className="product-image" />
               <h3>{item.name}</h3>
               <div className="price">{item.price_text}</div>
               <div style={{ fontSize: '0.85rem', color: '#888', marginBottom: '15px' }}>
                 Quedan {item.stock} en stock
               </div>
-              <button 
-                className="btn" 
-                onClick={() => addToCart(item)}
+              <button
+                className="btn"
+                onClick={(e) => handleButtonClick(e, item)}
                 disabled={item.stock === 0}
               >
                 {item.stock === 0 ? 'Agotado' : '¡YO TE ELIJO!'}

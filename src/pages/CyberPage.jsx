@@ -1,9 +1,9 @@
 import ProductCard from '../components/ProductCard';
 
 const CYBER_PRODUCTS = [
-  { image: '/pixelyplush/assets/vr.webp', alt: 'VR', name: 'Pase VR', price: '$1/15min', description: 'Acceso por 15 minutos a nuestras VR.' },
-  { image: '/pixelyplush/assets/ps4.webp', alt: 'Pase PlayStation', name: 'Pase PlayStation', price: '$1/15min', description: 'Acceso por 15 minutos a nuestras PlayStation.' },
-  { image: '/pixelyplush/assets/simulador.webp', alt: 'Pase Simulador De Carreras', name: 'Pase Simulador De Carreras', price: '$1/Vuelta', description: 'Acceso a una carrera en el simulador.', highlighted: true },
+  { image: '/assets/vr.webp', alt: 'VR', name: 'Pase VR', price: '$1/15min', description: 'Acceso por 15 minutos a nuestras VR.' },
+  { image: '/assets/ps4.webp', alt: 'Pase PlayStation', name: 'Pase PlayStation', price: '$1/15min', description: 'Acceso por 15 minutos a nuestras PlayStation.' },
+  { image: '/assets/simulador.webp', alt: 'Pase Simulador De Carreras', name: 'Pase Simulador De Carreras', price: '$1/Vuelta', description: 'Acceso a una carrera en el simulador.', highlighted: true },
 ];
 
 function CyberPage() {

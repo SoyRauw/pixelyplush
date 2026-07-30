@@ -1,8 +1,13 @@
 import React from 'react';
+import { Helmet } from 'react-helmet-async';
 
 function NosotrosPage() {
   return (
     <main className="nosotros-page" style={{ paddingTop: '100px', paddingBottom: '60px' }}>
+      <Helmet>
+        <title>Envíos y Delivery | Pixel & Plush</title>
+        <meta name="description" content="Información sobre envíos nacionales y delivery en Maracaibo. Te llevamos tu peluche a donde estés." />
+      </Helmet>
 
       <section className="section-container fade-in-up">
         <h1 className="section-title">🚚 Envíos y Delivery</h1>

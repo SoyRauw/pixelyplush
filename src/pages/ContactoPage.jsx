@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 
 function ContactoPage() {
   const [email, setEmail] = useState('');
@@ -11,6 +12,10 @@ function ContactoPage() {
 
   return (
     <main style={{ paddingTop: '80px' }}>
+      <Helmet>
+        <title>Contacto y Ubicación | Pixel & Plush</title>
+        <meta name="description" content="Contáctanos, suscríbete a nuestro boletín, o visítanos en la URBE. ¡Únete a la familia Pixel & Plush!" />
+      </Helmet>
       <section className="section-container">
         <h2 className="section-title">¡Únete a la Familia!</h2>
 

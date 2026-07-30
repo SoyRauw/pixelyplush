@@ -10,7 +10,8 @@ function AdminPage() {
   const [activeTab, setActiveTab] = useState('plushies'); // 'plushies' or 'purchases'
   const [plushies, setPlushies] = useState([]);
   const [purchases, setPurchases] = useState([]);
-  const [form, setForm] = useState({ name: '', price: '', image: '', stock: '' });
+  const [form, setForm] = useState({ name: '', price: '', stock: '' });
+  const [imageFile, setImageFile] = useState(null);
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -97,34 +98,61 @@ function AdminPage() {
     setFormError('');
     setFormSuccess('');
 
-    const { name, price, image, stock } = form;
-    if (!name || price === '' || !image || stock === '') {
-      setFormError('Completa todos los campos obligatorios.');
+    const { name, price, stock } = form;
+    if (!name || price === '' || !imageFile || stock === '') {
+      setFormError('Completa todos los campos obligatorios (incluyendo la imagen).');
       return;
     }
 
     setLoading(true);
     const numericPrice = parseFloat(price);
     const numericStock = parseInt(stock);
-    const imagePath = image.startsWith('/pixelyplush/assets/') ? image : `/pixelyplush/assets/${image}`;
     
-    const { error } = await supabase
-      .from('plushies')
-      .insert([{ 
-        name, 
-        price: numericPrice, 
-        price_text: `$${numericPrice.toFixed(2)}`,
-        image: imagePath,
-        stock: numericStock
-      }]);
-    setLoading(false);
+    try {
+      // 1. Upload image to Supabase Storage
+      const fileExt = imageFile.name.split('.').pop();
+      const fileName = `${Date.now()}_${name.replace(/[^a-zA-Z0-9]/g, '_')}.${fileExt}`;
+      const filePath = `${fileName}`;
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('products')
+        .upload(filePath, imageFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
-    if (error) {
-      setFormError('Error al guardar: ' + error.message);
-    } else {
+      if (uploadError) throw uploadError;
+
+      // 2. Get public URL
+      const { data: publicUrlData } = supabase.storage
+        .from('products')
+        .getPublicUrl(filePath);
+
+      const imageUrl = publicUrlData.publicUrl;
+
+      // 3. Insert into database
+      const { error: dbError } = await supabase
+        .from('plushies')
+        .insert([{ 
+          name, 
+          price: numericPrice, 
+          price_text: `$${numericPrice.toFixed(2)}`,
+          image: imageUrl,
+          stock: numericStock
+        }]);
+
+      if (dbError) throw dbError;
+
       setFormSuccess(`✅ ¡${name} agregado al inventario!`);
-      setForm({ name: '', price: '', image: '', stock: '' });
+      setForm({ name: '', price: '', stock: '' });
+      setImageFile(null);
+      // Reset file input value manually
+      document.getElementById('imageFileInput').value = '';
       fetchPlushies();
+    } catch (err) {
+      setFormError('Error al guardar: ' + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -272,7 +300,7 @@ function AdminPage() {
   return (
     <main style={{ paddingTop: '80px' }}>
       <section className="section-container">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', flexWrap: 'wrap', gap: '15px' }}>
+        <div className="admin-header">
           <h2 className="section-title" style={{ margin: 0 }}>🛠️ Panel Admin</h2>
           <button onClick={handleLogout} className="btn btn-outline" style={{ fontSize: '0.9rem', padding: '8px 20px' }}>
             Cerrar sesión
@@ -280,7 +308,7 @@ function AdminPage() {
         </div>
 
         {/* TABS MENU */}
-        <div style={{ display: 'flex', gap: '15px', marginBottom: '30px' }}>
+        <div className="admin-tabs">
           <button 
             className={`btn ${activeTab === 'plushies' ? '' : 'btn-outline'}`}
             onClick={() => setActiveTab('plushies')}
@@ -319,7 +347,7 @@ function AdminPage() {
                     className="admin-input"
                   />
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
+                <div className="admin-grid-3">
                   <div className="admin-form-group">
                     <label>Precio (Ej: 15.00)</label>
                     <input
@@ -339,12 +367,14 @@ function AdminPage() {
                     />
                   </div>
                   <div className="admin-form-group">
-                    <label>Nombre Imagen</label>
+                    <label>Imagen del Peluche</label>
                     <input
-                      type="text" placeholder="Ej: pikachu.webp"
-                      value={form.image}
-                      onChange={(e) => setForm({ ...form, image: e.target.value })}
+                      type="file"
+                      id="imageFileInput"
+                      accept="image/*"
+                      onChange={(e) => setImageFile(e.target.files[0])}
                       className="admin-input"
+                      style={{ padding: '8px' }}
                     />
                   </div>
                 </div>
@@ -379,13 +409,13 @@ function AdminPage() {
                     <tbody>
                       {plushies.map((plush) => (
                         <tr key={plush.id}>
-                          <td className="lb-pos">
-                            <img src={plush.image} alt={plush.name} style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
+                          <td className="lb-pos" data-label="Imagen">
+                            <img src={plush.image?.replace('/pixelyplush/assets/', '/assets/') || plush.image} alt={plush.name} style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
                           </td>
-                          <td className="lb-pilot">{plush.name}</td>
-                          <td className="lb-time">{plush.price_text}</td>
-                          <td className="lb-time">{plush.stock}</td>
-                          <td>
+                          <td className="lb-pilot" data-label="Nombre">{plush.name}</td>
+                          <td className="lb-time" data-label="Precio">{plush.price_text}</td>
+                          <td className="lb-time" data-label="Stock">{plush.stock}</td>
+                          <td data-label="Acción">
                             <button
                               className="admin-delete-btn"
                               onClick={() => handleDeletePlushie(plush.id, plush.name)}
@@ -411,7 +441,7 @@ function AdminPage() {
                 📝 Emitir Factura
               </h3>
               <div className="admin-form">
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                <div className="admin-grid-2">
                   <div className="admin-form-group">
                     <label>Nombre del Cliente</label>
                     <input 
@@ -432,19 +462,19 @@ function AdminPage() {
 
                 <div className="admin-form-group" style={{ marginTop: '20px' }}>
                   <label>Agregar Peluches a la Factura</label>
-                  <div style={{ display: 'flex', gap: '10px' }}>
+                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                     <select 
                       className="admin-input" 
                       value={selectedPlushieId} 
                       onChange={e => setSelectedPlushieId(e.target.value)}
-                      style={{ flex: 1 }}
+                      style={{ flex: '1 1 200px' }}
                     >
                       <option value="">Selecciona un peluche...</option>
                       {plushies.filter(p => p.stock > 0).map(p => (
                          <option key={p.id} value={p.id}>{p.name} (${p.price}) - Disp: {p.stock}</option>
                       ))}
                     </select>
-                    <button type="button" className="btn btn-outline" onClick={handleAddInvoiceItem}>
+                    <button type="button" className="btn btn-outline" onClick={handleAddInvoiceItem} style={{ flex: '1 1 100px' }}>
                       ➕ Añadir
                     </button>
                   </div>
@@ -538,19 +568,19 @@ function AdminPage() {
 
                         return (
                           <tr key={purchase.id}>
-                            <td className="lb-date">
+                            <td className="lb-date" data-label="Fecha">
                               {new Date(purchase.created_at).toLocaleString('es-VE')}
                             </td>
-                            <td className="lb-pilot" style={{ whiteSpace: 'pre-wrap', fontSize: '0.85rem' }}>
+                            <td className="lb-pilot" style={{ whiteSpace: 'pre-wrap', fontSize: '0.85rem' }} data-label="Cliente">
                               {clientInfo}
                             </td>
-                            <td className="lb-pilot" style={{ whiteSpace: 'pre-wrap', fontSize: '0.85rem' }}>
+                            <td className="lb-pilot" style={{ whiteSpace: 'pre-wrap', fontSize: '0.85rem' }} data-label="Descripción">
                               {description}
                             </td>
-                            <td className="lb-time" style={{ color: 'var(--accent-glow)' }}>
+                            <td className="lb-time" style={{ color: 'var(--accent-glow)' }} data-label="Total">
                               ${purchase.total_amount?.toFixed(2)}
                             </td>
-                            <td>
+                            <td data-label="Acción">
                               <button
                                 className="admin-delete-btn"
                                 onClick={async () => {
@@ -590,7 +620,7 @@ function AdminPage() {
                     className="admin-input"
                   />
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)', gap: '15px' }}>
+                <div className="admin-grid-3">
                   <div className="admin-form-group">
                     <label>Minutos</label>
                     <input
@@ -653,10 +683,10 @@ function AdminPage() {
                          const timeStr = `${min}:${String(sec).padStart(2, '0')}.${String(ms).padStart(3, '0')}`;
                          return (
                            <tr key={rec.id}>
-                             <td className="lb-pos" style={{ fontWeight: 'bold' }}>{idx + 1}</td>
-                             <td className="lb-pilot">{rec.name}</td>
-                             <td className="lb-time" style={{ color: 'var(--accent-glow)' }}>{timeStr}</td>
-                             <td>
+                             <td className="lb-pos" style={{ fontWeight: 'bold' }} data-label="Posición">{idx + 1}</td>
+                             <td className="lb-pilot" data-label="Piloto">{rec.name}</td>
+                             <td className="lb-time" style={{ color: 'var(--accent-glow)' }} data-label="Tiempo">{timeStr}</td>
+                             <td data-label="Acción">
                                <button
                                  className="admin-delete-btn"
                                  onClick={() => handleDeleteRecord(rec.id, rec.name)}

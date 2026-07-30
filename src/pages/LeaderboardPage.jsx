@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 
 const MEDALS = ['🥇', '🥈', '🥉'];
 
@@ -38,6 +39,10 @@ function LeaderboardPage() {
 
   return (
     <main style={{ paddingTop: '80px' }}>
+      <Helmet>
+        <title>Leaderboard de Simulación | Pixel & Plush</title>
+        <meta name="description" content="Conoce a los mejores pilotos de nuestro simulador de carreras. ¿Serás tú el próximo en el Leaderboard?" />
+      </Helmet>
       <section className="section-container">
         <h2 className="section-title">🏁 Leaderboard</h2>
         <p style={{ marginBottom: '40px', fontSize: '1.1rem', color: 'var(--soft-lila)' }}>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import Carousel from '../components/Carousel';
 
 function HomePage() {
@@ -12,7 +13,12 @@ function HomePage() {
   };
 
   return (
-    <main>
+    <div className="home-page">
+      <Helmet>
+        <title>Inicio | Pixel & Plush</title>
+        <meta name="description" content="Bienvenido a Pixel & Plush. Explora nuestra increíble colección de peluches Pokémon y descubre la adrenalina de nuestra zona CyberGaming." />
+      </Helmet>
+      
       {/* ZONA POKEMON */}
       <div className="pokemon-zone">
         {/* Hero */}
@@ -31,7 +37,7 @@ function HomePage() {
           <div className="about-box about-box--split">
             <div className="about-box__video">
               <video autoPlay muted loop playsInline>
-                <source src="/pixelyplush/assets/pikavid.mp4" type="video/mp4" />
+                <source src="/assets/pikavid.mp4" type="video/mp4" />
               </video>
             </div>
             <div className="about-box__content">
@@ -113,7 +119,7 @@ function HomePage() {
           </a>
         </div>
       </section>
-    </main>
+      </div>
   );
 }
 

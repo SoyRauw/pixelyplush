@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 
@@ -6,6 +6,25 @@ function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { cartCount, toggleSidebar } = useCart();
   const navigate = useNavigate();
+  const headerRef = useRef(null);
+
+  // Medir la altura real del header para alinear el contenido debajo
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+
+    const setHeaderHeight = () => {
+      const height = header.getBoundingClientRect().height;
+      document.documentElement.style.setProperty('--header-height', `${height}px`);
+    };
+
+    setHeaderHeight();
+
+    const observer = new ResizeObserver(setHeaderHeight);
+    observer.observe(header);
+
+    return () => observer.disconnect();
+  }, []);
 
   // Atajo secreto Ctrl+Shift+A para abrir el panel de admin
   useEffect(() => {
@@ -20,7 +39,7 @@ function Header() {
   }, [navigate]);
 
   return (
-    <header>
+    <header ref={headerRef}>
       <div className="logo">Pixel &amp; Plush</div>
       <nav>
         <div

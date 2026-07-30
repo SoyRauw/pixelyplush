@@ -49,7 +49,7 @@ function TiendaPage() {
   };
 
   return (
-    <main style={{ paddingTop: '80px' }}>
+    <main style={{ paddingTop: 'var(--header-height, 80px)' }}>
       <div className={`tienda-layout${panelVisible ? ' detail-open' : ''}`}>
         <div className="detail-area">
           {selectedPlushie && (

@@ -1027,10 +1027,10 @@ footer {
 @media (max-width: 1024px) {
   .detail-area {
     position: fixed;
-    top: 80px;
+    top: var(--header-height, 80px);
     left: 0;
     width: 100vw;
-    height: calc(100vh - 80px);
+    height: calc(100vh - var(--header-height, 80px));
     transform: translateX(-100%);
     transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
     z-index: 500;

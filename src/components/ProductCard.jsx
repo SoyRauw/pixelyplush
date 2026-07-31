@@ -28,9 +28,6 @@ function ProductCard({ image, alt, name, price, stock, buttonText = "Comprar", d
       <img src={displayImage} alt={alt} className="product-image" />
       <div className="card-body">
         <h3>{name}</h3>
-        {description && (
-          <p className="card-description">{description}</p>
-        )}
         <div className="price">{price}</div>
         {stock !== undefined && (
           <div className="stock-text">

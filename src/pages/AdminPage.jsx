@@ -10,11 +10,12 @@ function AdminPage() {
   const [activeTab, setActiveTab] = useState('plushies'); // 'plushies' or 'purchases'
   const [plushies, setPlushies] = useState([]);
   const [purchases, setPurchases] = useState([]);
-  const [form, setForm] = useState({ name: '', price: '', stock: '' });
+  const [form, setForm] = useState({ name: '', price: '', stock: '', description: '' });
   const [imageFile, setImageFile] = useState(null);
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   const [invoiceCustomer, setInvoiceCustomer] = useState({ name: '', cedula: '' });
   const [invoiceItems, setInvoiceItems] = useState([]);
@@ -93,67 +94,115 @@ function AdminPage() {
     navigate('/leaderboard');
   };
 
-  const handleAddPlushie = async (e) => {
+  const handleSavePlushie = async (e) => {
     e.preventDefault();
     setFormError('');
     setFormSuccess('');
 
-    const { name, price, stock } = form;
-    if (!name || price === '' || !imageFile || stock === '') {
-      setFormError('Completa todos los campos obligatorios (incluyendo la imagen).');
+    const { name, price, stock, description } = form;
+    if (!name || price === '' || stock === '' || !description.trim()) {
+      setFormError('Completa todos los campos obligatorios (incluyendo la descripción).');
+      return;
+    }
+
+    if (!editingId && !imageFile) {
+      setFormError('La imagen es obligatoria para agregar un nuevo peluche.');
       return;
     }
 
     setLoading(true);
     const numericPrice = parseFloat(price);
     const numericStock = parseInt(stock);
-    
+
     try {
-      // 1. Upload image to Supabase Storage
-      const fileExt = imageFile.name.split('.').pop();
-      const fileName = `${Date.now()}_${name.replace(/[^a-zA-Z0-9]/g, '_')}.${fileExt}`;
-      const filePath = `${fileName}`;
-      
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('products')
-        .upload(filePath, imageFile, {
-          cacheControl: '3600',
-          upsert: false
-        });
+      let imageUrl = null;
 
-      if (uploadError) throw uploadError;
+      // 1. Upload image to Supabase Storage if a new image was selected
+      if (imageFile) {
+        const fileExt = imageFile.name.split('.').pop();
+        const fileName = `${Date.now()}_${name.replace(/[^a-zA-Z0-9]/g, '_')}.${fileExt}`;
+        const filePath = `${fileName}`;
 
-      // 2. Get public URL
-      const { data: publicUrlData } = supabase.storage
-        .from('products')
-        .getPublicUrl(filePath);
+        const { error: uploadError } = await supabase.storage
+          .from('products')
+          .upload(filePath, imageFile, {
+            cacheControl: '3600',
+            upsert: false
+          });
 
-      const imageUrl = publicUrlData.publicUrl;
+        if (uploadError) throw uploadError;
 
-      // 3. Insert into database
-      const { error: dbError } = await supabase
-        .from('plushies')
-        .insert([{ 
-          name, 
-          price: numericPrice, 
-          price_text: `$${numericPrice.toFixed(2)}`,
-          image: imageUrl,
-          stock: numericStock
-        }]);
+        const { data: publicUrlData } = supabase.storage
+          .from('products')
+          .getPublicUrl(filePath);
 
-      if (dbError) throw dbError;
+        imageUrl = publicUrlData.publicUrl;
+      }
 
-      setFormSuccess(`✅ ¡${name} agregado al inventario!`);
-      setForm({ name: '', price: '', stock: '' });
+      // 2. Insert or update database
+      const plushieData = {
+        name,
+        price: numericPrice,
+        price_text: `$${numericPrice.toFixed(2)}`,
+        stock: numericStock,
+        description: description.trim()
+      };
+
+      if (imageUrl) {
+        plushieData.image = imageUrl;
+      }
+
+      if (editingId) {
+        const { error: dbError } = await supabase
+          .from('plushies')
+          .update(plushieData)
+          .eq('id', editingId);
+
+        if (dbError) throw dbError;
+
+        setFormSuccess(`✅ ¡${name} actualizado correctamente!`);
+      } else {
+        const { error: dbError } = await supabase
+          .from('plushies')
+          .insert([plushieData]);
+
+        if (dbError) throw dbError;
+
+        setFormSuccess(`✅ ¡${name} agregado al inventario!`);
+      }
+
+      setForm({ name: '', price: '', stock: '', description: '' });
       setImageFile(null);
-      // Reset file input value manually
-      document.getElementById('imageFileInput').value = '';
+      setEditingId(null);
+      const fileInput = document.getElementById('imageFileInput');
+      if (fileInput) fileInput.value = '';
       fetchPlushies();
     } catch (err) {
       setFormError('Error al guardar: ' + err.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEditClick = (plushie) => {
+    setEditingId(plushie.id);
+    setForm({
+      name: plushie.name,
+      price: plushie.price,
+      stock: plushie.stock,
+      description: plushie.description || ''
+    });
+    setImageFile(null);
+    const fileInput = document.getElementById('imageFileInput');
+    if (fileInput) fileInput.value = '';
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setForm({ name: '', price: '', stock: '', description: '' });
+    setImageFile(null);
+    const fileInput = document.getElementById('imageFileInput');
+    if (fileInput) fileInput.value = '';
   };
 
   const handleDeletePlushie = async (id, name) => {
@@ -334,9 +383,9 @@ function AdminPage() {
             {/* FORMULARIO AGREGAR PELUCHE */}
             <div className="admin-card">
               <h3 style={{ color: 'var(--soft-lila)', marginBottom: '20px', fontSize: '1.4rem' }}>
-                ➕ Agregar Peluche
+                {editingId ? '✏️ Editar Peluche' : '➕ Agregar Peluche'}
               </h3>
-              <form onSubmit={handleAddPlushie} className="admin-form">
+              <form onSubmit={handleSavePlushie} className="admin-form">
                 <div className="admin-form-group">
                   <label>Nombre del Peluche</label>
                   <input
@@ -345,6 +394,17 @@ function AdminPage() {
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     className="admin-input"
+                  />
+                </div>
+                <div className="admin-form-group">
+                  <label>Descripción *</label>
+                  <textarea
+                    placeholder="Ej: Peluche suave de Pikachu de 25cm, edición primera generación."
+                    value={form.description}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    className="admin-input"
+                    rows={4}
+                    style={{ resize: 'vertical', minHeight: '80px' }}
                   />
                 </div>
                 <div className="admin-grid-3">
@@ -367,7 +427,7 @@ function AdminPage() {
                     />
                   </div>
                   <div className="admin-form-group">
-                    <label>Imagen del Peluche</label>
+                    <label>Imagen del Peluche {editingId ? '(opcional al editar)' : '*'}</label>
                     <input
                       type="file"
                       id="imageFileInput"
@@ -378,12 +438,19 @@ function AdminPage() {
                     />
                   </div>
                 </div>
-                
+
                 {formError && <p className="admin-error">{formError}</p>}
                 {formSuccess && <p className="admin-success">{formSuccess}</p>}
-                <button type="submit" className="btn" disabled={loading} style={{ marginTop: '15px' }}>
-                  {loading ? 'Guardando...' : '🧸 Registrar Peluche'}
-                </button>
+                <div style={{ display: 'flex', gap: '10px', marginTop: '15px', flexWrap: 'wrap' }}>
+                  <button type="submit" className="btn" disabled={loading} style={{ flex: '1 1 auto' }}>
+                    {loading ? 'Guardando...' : editingId ? '💾 Actualizar Peluche' : '🧸 Registrar Peluche'}
+                  </button>
+                  {editingId && (
+                    <button type="button" className="btn btn-outline" onClick={handleCancelEdit} style={{ flex: '0 0 auto' }}>
+                      Cancelar
+                    </button>
+                  )}
+                </div>
               </form>
             </div>
 
@@ -401,6 +468,7 @@ function AdminPage() {
                       <tr>
                         <th>Imagen</th>
                         <th>Nombre</th>
+                        <th>Descripción</th>
                         <th>Precio</th>
                         <th>Stock</th>
                         <th>Acción</th>
@@ -413,12 +481,24 @@ function AdminPage() {
                             <img src={plush.image?.replace('/pixelyplush/assets/', '/assets/') || plush.image} alt={plush.name} style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
                           </td>
                           <td className="lb-pilot" data-label="Nombre">{plush.name}</td>
+                          <td className="lb-pilot" data-label="Descripción" style={{ fontSize: '0.8rem', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {plush.description || '-'}
+                          </td>
                           <td className="lb-time" data-label="Precio">{plush.price_text}</td>
                           <td className="lb-time" data-label="Stock">{plush.stock}</td>
                           <td data-label="Acción">
                             <button
                               className="admin-delete-btn"
+                              onClick={() => handleEditClick(plush)}
+                              style={{ marginRight: '8px' }}
+                              title="Editar"
+                            >
+                              ✏️
+                            </button>
+                            <button
+                              className="admin-delete-btn"
                               onClick={() => handleDeletePlushie(plush.id, plush.name)}
+                              title="Eliminar"
                             >
                               ❌
                             </button>

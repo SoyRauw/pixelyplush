@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
+import AdminProductEditPanel from '../components/AdminProductEditPanel';
 
 function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -16,6 +17,8 @@ function AdminPage() {
   const [formSuccess, setFormSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [panelVisible, setPanelVisible] = useState(false);
+  const [selectedAdminPlushie, setSelectedAdminPlushie] = useState(null);
 
   const [invoiceCustomer, setInvoiceCustomer] = useState({ name: '', cedula: '' });
   const [invoiceItems, setInvoiceItems] = useState([]);
@@ -95,7 +98,7 @@ function AdminPage() {
   };
 
   const handleSavePlushie = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     setFormError('');
     setFormSuccess('');
 
@@ -174,8 +177,8 @@ function AdminPage() {
       setForm({ name: '', price: '', stock: '', description: '' });
       setImageFile(null);
       setEditingId(null);
-      const fileInput = document.getElementById('imageFileInput');
-      if (fileInput) fileInput.value = '';
+      setSelectedAdminPlushie(null);
+      setPanelVisible(false);
       fetchPlushies();
     } catch (err) {
       setFormError('Error al guardar: ' + err.message);
@@ -186,6 +189,7 @@ function AdminPage() {
 
   const handleEditClick = (plushie) => {
     setEditingId(plushie.id);
+    setSelectedAdminPlushie(plushie);
     setForm({
       name: plushie.name,
       price: plushie.price,
@@ -193,22 +197,41 @@ function AdminPage() {
       description: plushie.description || ''
     });
     setImageFile(null);
-    const fileInput = document.getElementById('imageFileInput');
-    if (fileInput) fileInput.value = '';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setFormError('');
+    setFormSuccess('');
+    setPanelVisible(true);
+  };
+
+  const handleAddClick = () => {
+    setEditingId(null);
+    setSelectedAdminPlushie(null);
+    setForm({ name: '', price: '', stock: '', description: '' });
+    setImageFile(null);
+    setFormError('');
+    setFormSuccess('');
+    setPanelVisible(true);
   };
 
   const handleCancelEdit = () => {
     setEditingId(null);
+    setSelectedAdminPlushie(null);
     setForm({ name: '', price: '', stock: '', description: '' });
     setImageFile(null);
-    const fileInput = document.getElementById('imageFileInput');
-    if (fileInput) fileInput.value = '';
+    setFormError('');
+    setFormSuccess('');
+    setPanelVisible(false);
   };
 
   const handleDeletePlushie = async (id, name) => {
     if (!confirm(`¿Eliminar el peluche ${name}?`)) return;
     await supabase.from('plushies').delete().eq('id', id);
+    if (editingId === id) {
+      setEditingId(null);
+      setSelectedAdminPlushie(null);
+      setPanelVisible(false);
+      setForm({ name: '', price: '', stock: '', description: '' });
+      setImageFile(null);
+    }
     fetchPlushies();
   };
 
@@ -315,7 +338,7 @@ function AdminPage() {
   if (!isAuthenticated) {
     return (
       <main style={{ paddingTop: '80px' }}>
-        <section className="section-container">
+      <section className="section-container admin-section">
           <div className="admin-login-box">
             <div className="admin-login-icon">🔐</div>
             <h2 className="section-title" style={{ fontSize: '2rem' }}>Panel Administrador</h2>
@@ -380,138 +403,93 @@ function AdminPage() {
         </div>
 
         {activeTab === 'plushies' && (
-          <>
-            {/* FORMULARIO AGREGAR PELUCHE */}
-            <div className="admin-card">
-              <h3 style={{ color: 'var(--soft-lila)', marginBottom: '20px', fontSize: '1.4rem' }}>
-                {editingId ? '✏️ Editar Peluche' : '➕ Agregar Peluche'}
-              </h3>
-              <form onSubmit={handleSavePlushie} className="admin-form">
-                <div className="admin-form-group">
-                  <label>Nombre del Peluche</label>
-                  <input
-                    type="text"
-                    placeholder="Ej: Pikachu 25cm"
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="admin-input"
+          <div className={`admin-layout${panelVisible ? ' admin-panel-open' : ''}`}>
+            <div className="admin-edit-area">
+              {panelVisible && (
+                <div className="detail-panel">
+                  <AdminProductEditPanel
+                    plushie={selectedAdminPlushie}
+                    form={form}
+                    setForm={setForm}
+                    imageFile={imageFile}
+                    setImageFile={setImageFile}
+                    onSave={handleSavePlushie}
+                    onCancel={handleCancelEdit}
+                    loading={loading}
+                    isEditing={!!editingId}
+                    formError={formError}
+                    formSuccess={formSuccess}
                   />
-                </div>
-                <div className="admin-form-group">
-                  <label>Descripción *</label>
-                  <textarea
-                    placeholder="Ej: Peluche suave de Pikachu de 25cm, edición primera generación."
-                    value={form.description}
-                    onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    className="admin-input"
-                    rows={4}
-                    style={{ resize: 'vertical', minHeight: '80px' }}
-                  />
-                </div>
-                <div className="admin-grid-3">
-                  <div className="admin-form-group">
-                    <label>Precio (Ej: 15.00)</label>
-                    <input
-                      type="number" step="0.01" min="0" placeholder="15.00"
-                      value={form.price}
-                      onChange={(e) => setForm({ ...form, price: e.target.value })}
-                      className="admin-input"
-                    />
-                  </div>
-                  <div className="admin-form-group">
-                    <label>Stock</label>
-                    <input
-                      type="number" min="0" placeholder="10"
-                      value={form.stock}
-                      onChange={(e) => setForm({ ...form, stock: e.target.value })}
-                      className="admin-input"
-                    />
-                  </div>
-                  <div className="admin-form-group">
-                    <label>Imagen del Peluche {editingId ? '(opcional al editar)' : '*'}</label>
-                    <input
-                      type="file"
-                      id="imageFileInput"
-                      accept="image/*"
-                      onChange={(e) => setImageFile(e.target.files[0])}
-                      className="admin-input"
-                      style={{ padding: '8px' }}
-                    />
-                  </div>
-                </div>
-
-                {formError && <p className="admin-error">{formError}</p>}
-                {formSuccess && <p className="admin-success">{formSuccess}</p>}
-                <div style={{ display: 'flex', gap: '10px', marginTop: '15px', flexWrap: 'wrap' }}>
-                  <button type="submit" className="btn" disabled={loading} style={{ flex: '1 1 auto' }}>
-                    {loading ? 'Guardando...' : editingId ? '💾 Actualizar Peluche' : '🧸 Registrar Peluche'}
-                  </button>
-                  {editingId && (
-                    <button type="button" className="btn btn-outline" onClick={handleCancelEdit} style={{ flex: '0 0 auto' }}>
-                      Cancelar
-                    </button>
-                  )}
-                </div>
-              </form>
-            </div>
-
-            {/* TABLA DE PELUCHES */}
-            <div className="admin-card" style={{ marginTop: '30px' }}>
-              <h3 style={{ color: 'var(--soft-lila)', marginBottom: '20px', fontSize: '1.4rem' }}>
-                📋 Inventario Actual ({plushies.length})
-              </h3>
-              {plushies.length === 0 ? (
-                <p style={{ color: '#aaa' }}>No hay peluches registrados aún.</p>
-              ) : (
-                <div className="lb-table-wrapper">
-                  <table className="lb-table" style={{ width: '100%' }}>
-                    <thead>
-                      <tr>
-                        <th>Imagen</th>
-                        <th>Nombre</th>
-                        <th>Descripción</th>
-                        <th>Precio</th>
-                        <th>Stock</th>
-                        <th>Acción</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {plushies.map((plush) => (
-                        <tr key={plush.id}>
-                          <td className="lb-pos" data-label="Imagen">
-                            <img src={plush.image?.replace('/pixelyplush/assets/', '/assets/') || plush.image} alt={plush.name} style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
-                          </td>
-                          <td className="lb-pilot" data-label="Nombre">{plush.name}</td>
-                          <td className="lb-pilot" data-label="Descripción" style={{ fontSize: '0.8rem', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {plush.description || '-'}
-                          </td>
-                          <td className="lb-time" data-label="Precio">{plush.price_text}</td>
-                          <td className="lb-time" data-label="Stock">{plush.stock}</td>
-                          <td data-label="Acción">
-                            <button
-                              className="admin-delete-btn"
-                              onClick={() => handleEditClick(plush)}
-                              style={{ marginRight: '8px' }}
-                              title="Editar"
-                            >
-                              ✏️
-                            </button>
-                            <button
-                              className="admin-delete-btn"
-                              onClick={() => handleDeletePlushie(plush.id, plush.name)}
-                              title="Eliminar"
-                            >
-                              ❌
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
                 </div>
               )}
             </div>
-          </>
+
+            <div className="admin-list-area">
+              {/* TABLA DE PELUCHES */}
+              <div className="admin-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
+                  <h3 style={{ color: 'var(--soft-lila)', margin: 0, fontSize: '1.4rem' }}>
+                    📋 Inventario Actual ({plushies.length})
+                  </h3>
+                  <button onClick={handleAddClick} className="btn" type="button">
+                    ➕ Agregar Peluche
+                  </button>
+                </div>
+                {plushies.length === 0 ? (
+                  <p style={{ color: '#aaa' }}>No hay peluches registrados aún.</p>
+                ) : (
+                  <div className="lb-table-wrapper">
+                    <table className="lb-table" style={{ width: '100%' }}>
+                      <thead>
+                        <tr>
+                          <th>Imagen</th>
+                          <th>Nombre</th>
+                          <th>Descripción</th>
+                          <th>Precio</th>
+                          <th>Stock</th>
+                          <th>Acción</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {plushies
+                          .filter((plush) => !panelVisible || plush.id !== editingId)
+                          .map((plush) => (
+                            <tr key={plush.id}>
+                              <td className="lb-pos" data-label="Imagen">
+                                <img src={plush.image?.replace('/pixelyplush/assets/', '/assets/') || plush.image} alt={plush.name} style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
+                              </td>
+                              <td className="lb-pilot" data-label="Nombre">{plush.name}</td>
+                              <td className="lb-pilot" data-label="Descripción" style={{ fontSize: '0.8rem', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {plush.description || '-'}
+                              </td>
+                              <td className="lb-time" data-label="Precio">{plush.price_text}</td>
+                              <td className="lb-time" data-label="Stock">{plush.stock}</td>
+                              <td data-label="Acción">
+                                <button
+                                  className="admin-delete-btn"
+                                  onClick={() => handleEditClick(plush)}
+                                  style={{ marginRight: '8px' }}
+                                  title="Editar"
+                                >
+                                  ✏️
+                                </button>
+                                <button
+                                  className="admin-delete-btn"
+                                  onClick={() => handleDeletePlushie(plush.id, plush.name)}
+                                  title="Eliminar"
+                                >
+                                  ❌
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         )}
 
         {activeTab === 'purchases' && (

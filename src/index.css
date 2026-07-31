@@ -1314,6 +1314,18 @@ footer {
     gap: 15px;
 }
 
+.section-container.admin-section {
+    padding: 0;
+}
+
+.section-container.admin-section .admin-header {
+    padding: 60px 10% 0;
+}
+
+.section-container.admin-section .admin-tabs {
+    padding: 0 10%;
+}
+
 @media (max-width: 768px) {
     .admin-grid-3, .admin-grid-2 {
         grid-template-columns: 1fr;
@@ -1326,6 +1338,14 @@ footer {
 
     .admin-tabs {
         flex-direction: column;
+    }
+
+    .section-container.admin-section .admin-header {
+        padding: 40px 5% 0;
+    }
+
+    .section-container.admin-section .admin-tabs {
+        padding: 0 5%;
     }
 
     /* Responsive Tables as Cards */
@@ -1361,5 +1381,196 @@ footer {
         color: var(--soft-lila);
         margin-right: 15px;
         text-align: left;
+    }
+}
+
+/* --- ADMIN EDIT PANEL LAYOUT --- */
+.admin-layout {
+    display: flex;
+    min-height: calc(100vh - 80px);
+    align-items: flex-start;
+}
+
+.admin-edit-area {
+    flex-shrink: 0;
+    width: 0;
+    overflow: hidden;
+    transition: width 0.45s cubic-bezier(0.25, 0.8, 0.25, 1);
+    background: var(--bg-deep-purple);
+    border-right: 1px solid var(--soft-lila);
+    position: sticky;
+    top: 80px;
+    align-self: flex-start;
+    height: calc(100vh - 80px);
+}
+
+.admin-panel-open .admin-edit-area {
+    width: 60%;
+}
+
+.admin-list-area {
+    flex: 1;
+    min-width: 0;
+    padding: 30px 5%;
+}
+
+.admin-edit-title {
+    color: var(--soft-lila);
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-align: left;
+    width: 100%;
+}
+
+.admin-edit-image-block {
+    position: relative;
+}
+
+.admin-no-image {
+    color: #aaa;
+    font-size: 1.2rem;
+    text-align: center;
+    padding: 40px;
+    border: 2px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    width: 100%;
+}
+
+.admin-edit-info-block {
+    gap: 14px;
+    overflow-y: auto;
+}
+
+.admin-edit-info-block .admin-form-group {
+    width: 100%;
+}
+
+.admin-edit-info-block .admin-form-group label {
+    color: var(--soft-lila);
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.admin-edit-info-block .admin-input {
+    background: rgba(0, 0, 0, 0.25);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: white;
+    width: 100%;
+}
+
+.admin-edit-info-block .admin-input::placeholder {
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.admin-edit-info-block .admin-input:focus {
+    border-color: var(--soft-lila);
+    box-shadow: 0 0 10px rgba(213, 189, 236, 0.2);
+}
+
+.admin-edit-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    width: 100%;
+}
+
+/* --- BUTTON SPINNER --- */
+.btn-spinner-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-spinner {
+    width: 18px;
+    height: 18px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: btn-spin 0.8s linear infinite;
+    display: inline-block;
+}
+
+@keyframes btn-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* --- ADMIN PANEL MOBILE --- */
+@media (max-width: 1024px) {
+    .admin-edit-area {
+        position: fixed;
+        top: var(--header-height, 80px);
+        left: 0;
+        width: 100vw;
+        height: calc(100vh - var(--header-height, 80px));
+        transform: translateX(-100%);
+        transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+        z-index: 500;
+        box-shadow: 5px 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .admin-panel-open .admin-edit-area {
+        width: 100vw;
+        transform: translateX(0);
+    }
+
+    .admin-edit-area .detail-panel {
+        padding: 20px;
+        height: 100%;
+    }
+
+    .admin-edit-inner {
+        flex-direction: column;
+        padding: 20px;
+        gap: 20px;
+        height: 100%;
+        overflow-y: auto;
+    }
+
+    .admin-edit-image-block,
+    .admin-edit-info-block {
+        width: 100%;
+        height: auto;
+    }
+
+    .admin-edit-image-block {
+        flex: 0 0 auto;
+        min-height: 200px;
+        padding: 16px;
+    }
+
+    .admin-edit-info-block {
+        flex: 1 1 auto;
+        padding: 20px;
+        gap: 12px;
+        overflow-y: visible;
+    }
+
+    .admin-edit-title {
+        font-size: 1rem;
+        margin-bottom: 8px;
+    }
+
+    .admin-edit-area .detail-close-btn {
+        top: 14px;
+        right: 20px;
+    }
+
+    .admin-edit-info-block .btn {
+        align-self: center;
+        width: 100%;
+    }
+
+    .admin-list-area {
+        padding: 24px 4%;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-edit-row {
+        grid-template-columns: 1fr;
     }
 }

@@ -195,6 +195,7 @@ function AdminPage() {
     setImageFile(null);
     const fileInput = document.getElementById('imageFileInput');
     if (fileInput) fileInput.value = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleCancelEdit = () => {

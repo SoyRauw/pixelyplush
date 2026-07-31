@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import AdminProductEditPanel from '../components/AdminProductEditPanel';
+import { getMainImage, getAllImages, getFileNameFromUrl, validateImageFiles } from '../lib/images';
 
 function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -11,14 +12,16 @@ function AdminPage() {
   const [activeTab, setActiveTab] = useState('plushies'); // 'plushies' or 'purchases'
   const [plushies, setPlushies] = useState([]);
   const [purchases, setPurchases] = useState([]);
-  const [form, setForm] = useState({ name: '', price: '', stock: '', description: '' });
-  const [imageFile, setImageFile] = useState(null);
+  const [form, setForm] = useState({ name: '', price: '', stock: '', description: '', images: [], mainImageIndex: 0 });
+  const [pendingFiles, setPendingFiles] = useState([]);
+  const [deletedImages, setDeletedImages] = useState([]);
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [panelVisible, setPanelVisible] = useState(false);
   const [selectedAdminPlushie, setSelectedAdminPlushie] = useState(null);
+  const [selectedIds, setSelectedIds] = useState([]);
 
   const [invoiceCustomer, setInvoiceCustomer] = useState({ name: '', cedula: '' });
   const [invoiceItems, setInvoiceItems] = useState([]);
@@ -102,14 +105,20 @@ function AdminPage() {
     setFormError('');
     setFormSuccess('');
 
-    const { name, price, stock, description } = form;
+    const { name, price, stock, description, images, mainImageIndex } = form;
     if (!name || price === '' || stock === '' || !description.trim()) {
       setFormError('Completa todos los campos obligatorios (incluyendo la descripción).');
       return;
     }
 
-    if (!editingId && !imageFile) {
+    if (!editingId && images.length === 0 && pendingFiles.length === 0) {
       setFormError('La imagen es obligatoria para agregar un nuevo peluche.');
+      return;
+    }
+
+    const { validFiles, errors } = validateImageFiles(pendingFiles);
+    if (errors.length > 0) {
+      setFormError(errors.join('. '));
       return;
     }
 
@@ -118,42 +127,56 @@ function AdminPage() {
     const numericStock = parseInt(stock);
 
     try {
-      let imageUrl = null;
+      let newImageUrls = [];
 
-      // 1. Upload image to Supabase Storage if a new image was selected
-      if (imageFile) {
-        const fileExt = imageFile.name.split('.').pop();
-        const fileName = `${Date.now()}_${name.replace(/[^a-zA-Z0-9]/g, '_')}.${fileExt}`;
-        const filePath = `${fileName}`;
+      // 1. Upload new images to Supabase Storage
+      if (validFiles.length > 0) {
+        const timestamp = Date.now();
+        for (let i = 0; i < validFiles.length; i++) {
+          const file = validFiles[i];
+          const fileExt = file.name.split('.').pop();
+          const safeName = name.replace(/[^a-zA-Z0-9]/g, '_');
+          const fileName = `${timestamp}_${i}_${safeName}.${fileExt}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from('products')
-          .upload(filePath, imageFile, {
-            cacheControl: '3600',
-            upsert: false
-          });
+          const { error: uploadError } = await supabase.storage
+            .from('products')
+            .upload(fileName, file, {
+              cacheControl: '3600',
+              upsert: false
+            });
 
-        if (uploadError) throw uploadError;
+          if (uploadError) throw uploadError;
 
-        const { data: publicUrlData } = supabase.storage
-          .from('products')
-          .getPublicUrl(filePath);
+          const { data: publicUrlData } = supabase.storage
+            .from('products')
+            .getPublicUrl(fileName);
 
-        imageUrl = publicUrlData.publicUrl;
+          newImageUrls.push(publicUrlData.publicUrl);
+        }
       }
 
-      // 2. Insert or update database
+      // 2. Delete removed images from storage
+      for (const imageUrl of deletedImages) {
+        const fileName = getFileNameFromUrl(imageUrl);
+        if (fileName) {
+          await supabase.storage.from('products').remove([fileName]);
+        }
+      }
+
+      // 3. Build final images array
+      const finalImages = [...images.filter((url) => !deletedImages.includes(url)), ...newImageUrls];
+      const safeMainIndex = Math.max(0, Math.min(mainImageIndex, finalImages.length - 1));
+
+      // 4. Insert or update database
       const plushieData = {
         name,
         price: numericPrice,
         price_text: `$${numericPrice.toFixed(2)}`,
         stock: numericStock,
-        description: description.trim()
+        description: description.trim(),
+        images: finalImages,
+        main_image_index: safeMainIndex
       };
-
-      if (imageUrl) {
-        plushieData.image = imageUrl;
-      }
 
       if (editingId) {
         const { error: dbError } = await supabase
@@ -174,11 +197,13 @@ function AdminPage() {
         setFormSuccess(`✅ ¡${name} agregado al inventario!`);
       }
 
-      setForm({ name: '', price: '', stock: '', description: '' });
-      setImageFile(null);
+      setForm({ name: '', price: '', stock: '', description: '', images: [], mainImageIndex: 0 });
+      setPendingFiles([]);
+      setDeletedImages([]);
       setEditingId(null);
       setSelectedAdminPlushie(null);
       setPanelVisible(false);
+      setSelectedIds([]);
       fetchPlushies();
     } catch (err) {
       setFormError('Error al guardar: ' + err.message);
@@ -194,9 +219,12 @@ function AdminPage() {
       name: plushie.name,
       price: plushie.price,
       stock: plushie.stock,
-      description: plushie.description || ''
+      description: plushie.description || '',
+      images: getAllImages(plushie),
+      mainImageIndex: plushie.main_image_index ?? 0
     });
-    setImageFile(null);
+    setPendingFiles([]);
+    setDeletedImages([]);
     setFormError('');
     setFormSuccess('');
     setPanelVisible(true);
@@ -205,8 +233,9 @@ function AdminPage() {
   const handleAddClick = () => {
     setEditingId(null);
     setSelectedAdminPlushie(null);
-    setForm({ name: '', price: '', stock: '', description: '' });
-    setImageFile(null);
+    setForm({ name: '', price: '', stock: '', description: '', images: [], mainImageIndex: 0 });
+    setPendingFiles([]);
+    setDeletedImages([]);
     setFormError('');
     setFormSuccess('');
     setPanelVisible(true);
@@ -215,23 +244,72 @@ function AdminPage() {
   const handleCancelEdit = () => {
     setEditingId(null);
     setSelectedAdminPlushie(null);
-    setForm({ name: '', price: '', stock: '', description: '' });
-    setImageFile(null);
+    setForm({ name: '', price: '', stock: '', description: '', images: [], mainImageIndex: 0 });
+    setPendingFiles([]);
+    setDeletedImages([]);
     setFormError('');
     setFormSuccess('');
     setPanelVisible(false);
   };
 
+  const deletePlushieImages = async (plushie) => {
+    const images = getAllImages(plushie);
+    for (const imageUrl of images) {
+      const fileName = getFileNameFromUrl(imageUrl);
+      if (fileName) {
+        await supabase.storage.from('products').remove([fileName]);
+      }
+    }
+  };
+
   const handleDeletePlushie = async (id, name) => {
     if (!confirm(`¿Eliminar el peluche ${name}?`)) return;
+    const plushie = plushies.find((p) => p.id === id);
+    if (plushie) await deletePlushieImages(plushie);
     await supabase.from('plushies').delete().eq('id', id);
+    setSelectedIds((prev) => prev.filter((selectedId) => selectedId !== id));
     if (editingId === id) {
       setEditingId(null);
       setSelectedAdminPlushie(null);
       setPanelVisible(false);
-      setForm({ name: '', price: '', stock: '', description: '' });
-      setImageFile(null);
+      setForm({ name: '', price: '', stock: '', description: '', images: [], mainImageIndex: 0 });
+      setPendingFiles([]);
+      setDeletedImages([]);
     }
+    fetchPlushies();
+  };
+
+  const handleToggleSelection = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((selectedId) => selectedId !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedIds(plushies.map((plush) => plush.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedIds.length === 0) return;
+    if (!confirm(`¿Eliminar ${selectedIds.length} peluche${selectedIds.length > 1 ? 's' : ''} seleccionado${selectedIds.length > 1 ? 's' : ''}?`)) return;
+    const selectedPlushies = plushies.filter((p) => selectedIds.includes(p.id));
+    for (const plushie of selectedPlushies) {
+      await deletePlushieImages(plushie);
+    }
+    await supabase.from('plushies').delete().in('id', selectedIds);
+    if (editingId && selectedIds.includes(editingId)) {
+      setEditingId(null);
+      setSelectedAdminPlushie(null);
+      setPanelVisible(false);
+      setForm({ name: '', price: '', stock: '', description: '', images: [], mainImageIndex: 0 });
+      setPendingFiles([]);
+      setDeletedImages([]);
+    }
+    setSelectedIds([]);
     fetchPlushies();
   };
 
@@ -372,7 +450,7 @@ function AdminPage() {
   // --- PANEL ADMIN ---
   return (
     <main style={{ paddingTop: '80px' }}>
-      <section className="section-container">
+      <section className="section-container admin-section">
         <div className="admin-header">
           <h2 className="section-title" style={{ margin: 0 }}>🛠️ Panel Admin</h2>
           <button onClick={handleLogout} className="btn btn-outline" style={{ fontSize: '0.9rem', padding: '8px 20px' }}>
@@ -411,8 +489,10 @@ function AdminPage() {
                     plushie={selectedAdminPlushie}
                     form={form}
                     setForm={setForm}
-                    imageFile={imageFile}
-                    setImageFile={setImageFile}
+                    pendingFiles={pendingFiles}
+                    setPendingFiles={setPendingFiles}
+                    deletedImages={deletedImages}
+                    setDeletedImages={setDeletedImages}
                     onSave={handleSavePlushie}
                     onCancel={handleCancelEdit}
                     loading={loading}
@@ -431,9 +511,16 @@ function AdminPage() {
                   <h3 style={{ color: 'var(--soft-lila)', margin: 0, fontSize: '1.4rem' }}>
                     📋 Inventario Actual ({plushies.length})
                   </h3>
-                  <button onClick={handleAddClick} className="btn" type="button">
-                    ➕ Agregar Peluche
-                  </button>
+                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                    {selectedIds.length > 0 && (
+                      <button onClick={handleDeleteSelected} className="btn btn-outline" type="button" style={{ borderColor: 'rgba(255, 107, 107, 0.6)', color: '#ff6b6b' }}>
+                        🗑️ Eliminar {selectedIds.length}
+                      </button>
+                    )}
+                    <button onClick={handleAddClick} className="btn" type="button">
+                      ➕ Agregar Peluche
+                    </button>
+                  </div>
                 </div>
                 {plushies.length === 0 ? (
                   <p style={{ color: '#aaa' }}>No hay peluches registrados aún.</p>
@@ -442,6 +529,15 @@ function AdminPage() {
                     <table className="lb-table" style={{ width: '100%' }}>
                       <thead>
                         <tr>
+                          <th style={{ width: '40px' }}>
+                            <input
+                              type="checkbox"
+                              checked={plushies.length > 0 && selectedIds.length === plushies.length}
+                              onChange={handleSelectAll}
+                              className="admin-checkbox"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </th>
                           <th>Imagen</th>
                           <th>Nombre</th>
                           <th>Descripción</th>
@@ -454,9 +550,22 @@ function AdminPage() {
                         {plushies
                           .filter((plush) => !panelVisible || plush.id !== editingId)
                           .map((plush) => (
-                            <tr key={plush.id}>
+                            <tr
+                              key={plush.id}
+                              className="admin-table-row"
+                              onClick={() => handleEditClick(plush)}
+                            >
+                              <td className="lb-pos" data-label="Seleccionar" onClick={(e) => e.stopPropagation()}>
+                                <input
+                                  type="checkbox"
+                                  checked={selectedIds.includes(plush.id)}
+                                  onChange={() => handleToggleSelection(plush.id)}
+                                  className="admin-checkbox"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </td>
                               <td className="lb-pos" data-label="Imagen">
-                                <img src={plush.image?.replace('/pixelyplush/assets/', '/assets/') || plush.image} alt={plush.name} style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
+                                <img src={getMainImage(plush)} alt={plush.name} style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
                               </td>
                               <td className="lb-pilot" data-label="Nombre">{plush.name}</td>
                               <td className="lb-pilot" data-label="Descripción" style={{ fontSize: '0.8rem', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -464,15 +573,7 @@ function AdminPage() {
                               </td>
                               <td className="lb-time" data-label="Precio">{plush.price_text}</td>
                               <td className="lb-time" data-label="Stock">{plush.stock}</td>
-                              <td data-label="Acción">
-                                <button
-                                  className="admin-delete-btn"
-                                  onClick={() => handleEditClick(plush)}
-                                  style={{ marginRight: '8px' }}
-                                  title="Editar"
-                                >
-                                  ✏️
-                                </button>
+                              <td data-label="Acción" onClick={(e) => e.stopPropagation()}>
                                 <button
                                   className="admin-delete-btn"
                                   onClick={() => handleDeletePlushie(plush.id, plush.name)}

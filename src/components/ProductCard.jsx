@@ -1,11 +1,12 @@
 import React from 'react';
 import { useCart } from '../context/CartContext';
+import { getMainImage } from '../lib/images';
 
 function ProductCard({ image, alt, name, price, stock, buttonText = "Comprar", description, highlighted = false, isCyber = false, item = null, onSelect }) {
   const { addToCart } = useCart();
 
   // Fix old paths from DB if they still include /pixelyplush
-  const displayImage = image?.replace('/pixelyplush/assets/', '/assets/') || image;
+  const displayImage = item ? getMainImage(item) : (image?.replace('/pixelyplush/assets/', '/assets/') || image);
 
   const handleCardClick = (e) => {
     e.stopPropagation();

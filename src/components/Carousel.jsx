@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
+import { getMainImage } from '../lib/images';
 
 function Carousel() {
   const [carouselIndex, setCarouselIndex] = useState(0);
@@ -82,7 +83,7 @@ function Carousel() {
             ref={(el) => (cardRefs.current[idx] = el)}
           >
             <div className="card" onClick={() => handleCardClick(item)}>
-              <img src={item.image?.replace('/pixelyplush/assets/', '/assets/') || item.image} alt={item.name} className="product-image" />
+              <img src={getMainImage(item)} alt={item.name} className="product-image" />
               <h3>{item.name}</h3>
               <div className="price">{item.price_text}</div>
               <div style={{ fontSize: '0.85rem', color: '#888', marginBottom: '15px' }}>

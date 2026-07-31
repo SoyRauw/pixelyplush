@@ -678,7 +678,24 @@ footer {
 .admin-delete-btn {
     background: transparent; border: none; font-size: 1.2rem; cursor: pointer; opacity: 0.6; transition: 0.2s;
 }
+
 .admin-delete-btn:hover { opacity: 1; transform: scale(1.2); }
+
+.admin-table-row {
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.admin-table-row:hover {
+    background: rgba(213, 189, 236, 0.08);
+}
+
+.admin-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--soft-lila);
+}
 
 /* --- CARRITO DE COMPRAS --- */
 .cart-icon-btn {
@@ -1388,11 +1405,6 @@ footer {
     display: flex;
     min-height: calc(100vh - 80px);
     align-items: flex-start;
-    padding: 0 40px;
-}
-
-.admin-panel-open .admin-layout {
-    gap: 40px;
 }
 
 .admin-edit-area {
@@ -1401,7 +1413,6 @@ footer {
     overflow: hidden;
     transition: width 0.45s cubic-bezier(0.25, 0.8, 0.25, 1);
     background: var(--bg-deep-purple);
-    border-right: 1px solid var(--soft-lila);
     position: sticky;
     top: 80px;
     align-self: flex-start;
@@ -1415,7 +1426,7 @@ footer {
 .admin-list-area {
     flex: 1;
     min-width: 0;
-    padding: 30px 0;
+    padding: 30px 5%;
 }
 
 .admin-edit-title {
@@ -1504,14 +1515,6 @@ footer {
 
 /* --- ADMIN PANEL MOBILE --- */
 @media (max-width: 1024px) {
-    .admin-layout {
-        padding: 0 24px;
-    }
-
-    .admin-panel-open .admin-layout {
-        gap: 0;
-    }
-
     .admin-edit-area {
         position: fixed;
         top: var(--header-height, 80px);
@@ -1584,5 +1587,206 @@ footer {
 @media (max-width: 768px) {
     .admin-edit-row {
         grid-template-columns: 1fr;
+    }
+}
+
+/* --- GALLERY STYLES --- */
+.admin-gallery-block,
+.product-gallery-block {
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-gallery-image,
+.product-gallery-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 20px;
+}
+
+.gallery-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 2;
+    padding: 0;
+    line-height: 1;
+}
+
+.gallery-arrow:hover {
+    background: var(--soft-lila);
+    color: var(--bg-deep-purple);
+    border-color: var(--soft-lila);
+}
+
+.gallery-arrow-left {
+    left: 16px;
+}
+
+.gallery-arrow-right {
+    right: 16px;
+}
+
+.gallery-dots {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 2;
+}
+
+.gallery-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.gallery-dot.active {
+    background: var(--soft-lila);
+    transform: scale(1.2);
+}
+
+.admin-image-btn {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    z-index: 3;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.admin-image-remove {
+    top: 12px;
+    right: 12px;
+    background: rgba(255, 107, 107, 0.9);
+    color: white;
+}
+
+.admin-image-remove:hover {
+    background: #ff5252;
+    transform: scale(1.1);
+}
+
+.admin-image-star {
+    top: 12px;
+    right: 52px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #ffd700;
+    border: 1px solid rgba(255, 215, 0, 0.4);
+}
+
+.admin-image-star.active {
+    background: rgba(255, 215, 0, 0.9);
+    color: var(--bg-deep-purple);
+}
+
+.admin-image-star:hover {
+    background: rgba(255, 215, 0, 0.8);
+    color: var(--bg-deep-purple);
+    transform: scale(1.1);
+}
+
+.admin-thumbnails {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+.admin-thumb {
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.admin-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.admin-thumb:hover {
+    border-color: var(--soft-lila);
+    transform: translateY(-2px);
+}
+
+.admin-thumb-main {
+    border-color: #ffd700;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.admin-thumb-star {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    font-size: 0.7rem;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 1024px) {
+    .gallery-arrow {
+        width: 36px;
+        height: 36px;
+        font-size: 1.4rem;
+    }
+
+    .gallery-arrow-left {
+        left: 10px;
+    }
+
+    .gallery-arrow-right {
+        right: 10px;
+    }
+
+    .admin-image-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+    }
+
+    .admin-image-star {
+        right: 44px;
+    }
+
+    .admin-thumb {
+        width: 50px;
+        height: 50px;
     }
 }

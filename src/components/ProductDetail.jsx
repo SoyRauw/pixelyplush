@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { getAllImages } from '../lib/images';
 
@@ -8,6 +8,11 @@ function ProductDetail({ plushie, onClose }) {
 
   const images = getAllImages(plushie);
   const displayImage = images[currentIndex] || images[0] || '';
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  useEffect(() => {
+    setImageLoaded(false);
+  }, [displayImage]);
 
   // Extraer tamaño del nombre si existe (ej: "Pikachu 25cm" -> "25CM")
   const sizeMatch = plushie.name?.match(/(\d+)\s?(cm|CM|Cm)/);
@@ -36,7 +41,17 @@ function ProductDetail({ plushie, onClose }) {
         <div className="detail-image-block product-gallery-block">
           {displayImage ? (
             <>
-              <img src={displayImage} alt={plushie.name} className="detail-image product-gallery-image" />
+              <img
+                src={displayImage}
+                alt={plushie.name}
+                className={`detail-image product-gallery-image${imageLoaded ? ' loaded' : ''}`}
+                onLoad={() => setImageLoaded(true)}
+              />
+              {!imageLoaded && (
+                <div className="image-loader-overlay">
+                  <span className="image-loader-spinner"></span>
+                </div>
+              )}
               {images.length > 1 && (
                 <>
                   <button className="gallery-arrow gallery-arrow-left" onClick={handlePrev}>‹</button>

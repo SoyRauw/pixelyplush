@@ -23,6 +23,7 @@ function AdminProductEditPanel({
   const [dragOverIndex, setDragOverIndex] = useState(null);
 
   const existingImages = form.images || [];
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   const imageItems = useMemo(() => {
     const items = [];
@@ -149,6 +150,10 @@ function AdminProductEditPanel({
   const title = isEditing ? '✏️ Editar Peluche' : '➕ Agregar Peluche';
   const displayImage = imageItems[displayIndex]?.url || getMainImage(plushie) || '';
 
+  useEffect(() => {
+    setImageLoaded(false);
+  }, [displayImage]);
+
   return (
     <>
       <button className="detail-close-btn" onClick={onCancel} type="button">✕</button>
@@ -156,7 +161,17 @@ function AdminProductEditPanel({
         <div className="detail-image-block admin-edit-image-block admin-gallery-block">
           {displayImage ? (
             <>
-              <img src={displayImage} alt={plushie?.name || 'Vista previa'} className="detail-image admin-gallery-image" />
+              <img
+                src={displayImage}
+                alt={plushie?.name || 'Vista previa'}
+                className={`detail-image admin-gallery-image${imageLoaded ? ' loaded' : ''}`}
+                onLoad={() => setImageLoaded(true)}
+              />
+              {!imageLoaded && (
+                <div className="image-loader-overlay">
+                  <span className="image-loader-spinner"></span>
+                </div>
+              )}
               {imageItems.length > 1 && (
                 <>
                   <button type="button" className="gallery-arrow gallery-arrow-left" onClick={handlePrevImage}>‹</button>

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import AdminProductEditPanel from '../components/AdminProductEditPanel';
-import { getMainImage, getAllImages, getFileNameFromUrl, validateImageFiles } from '../lib/images';
+import { getMainImage, getAllImages, getFileNameFromUrl, validateImageFiles, compressImage } from '../lib/images';
 
 function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -129,18 +129,19 @@ function AdminPage() {
     try {
       let newImageUrls = [];
 
-      // 1. Upload new images to Supabase Storage
+      // 1. Compress and upload new images to Supabase Storage
       if (validFiles.length > 0) {
         const timestamp = Date.now();
         for (let i = 0; i < validFiles.length; i++) {
-          const file = validFiles[i];
-          const fileExt = file.name.split('.').pop();
+          const originalFile = validFiles[i];
+          const compressedFile = await compressImage(originalFile);
+          const fileExt = compressedFile.name.split('.').pop();
           const safeName = name.replace(/[^a-zA-Z0-9]/g, '_');
           const fileName = `${timestamp}_${i}_${safeName}.${fileExt}`;
 
           const { error: uploadError } = await supabase.storage
             .from('products')
-            .upload(fileName, file, {
+            .upload(fileName, compressedFile, {
               cacheControl: '3600',
               upsert: false
             });

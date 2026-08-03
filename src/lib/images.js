@@ -1,5 +1,29 @@
+import imageCompression from 'browser-image-compression';
+
 export const MAX_IMAGE_SIZE_MB = 5;
 export const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
+
+export const compressImage = async (file) => {
+  const options = {
+    maxWidthOrHeight: 1200,
+    useWebWorker: true,
+    fileType: 'image/webp',
+    initialQuality: 0.8
+  };
+
+  try {
+    const compressedFile = await imageCompression(file, options);
+    // Preserve original name base but force webp extension
+    const baseName = file.name.replace(/\.[^/.]+$/, '');
+    return new File([compressedFile], `${baseName}.webp`, {
+      type: 'image/webp',
+      lastModified: Date.now()
+    });
+  } catch (err) {
+    console.warn('Error comprimiendo imagen, se usa original:', err);
+    return file;
+  }
+};
 
 export const getMainImage = (item) => {
   if (!item) return '';

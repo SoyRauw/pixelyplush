@@ -1723,7 +1723,7 @@ footer {
     height: 60px;
     border-radius: 10px;
     overflow: hidden;
-    cursor: pointer;
+    cursor: grab;
     border: 2px solid rgba(255, 255, 255, 0.1);
     transition: all 0.2s;
     position: relative;
@@ -1734,11 +1734,23 @@ footer {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    pointer-events: none;
 }
 
 .admin-thumb:hover {
     border-color: var(--soft-lila);
     transform: translateY(-2px);
+}
+
+.admin-thumb.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+}
+
+.admin-thumb.drag-over {
+    border-color: var(--soft-lila);
+    box-shadow: 0 0 15px rgba(213, 189, 236, 0.5);
+    transform: scale(1.05);
 }
 
 .admin-thumb-main {
@@ -1758,6 +1770,35 @@ footer {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.admin-thumb-remove {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(255, 107, 107, 0.9);
+    color: white;
+    border: none;
+    font-size: 0.65rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 2;
+}
+
+.admin-thumb:hover .admin-thumb-remove {
+    opacity: 1;
+}
+
+.admin-thumb-remove:hover {
+    background: #ff5252;
+    transform: scale(1.1);
 }
 
 @media (max-width: 1024px) {
